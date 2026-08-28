@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0a0a14;
+  --bg-2: #11111f;
+  --glass: rgba(255,255,255,0.06);
+  --glass-2: rgba(255,255,255,0.09);
+  --border: rgba(255,255,255,0.08);
+  --muted: #9aa0b6;
+  --violet: #7c5cff;
+  --violet-2: #a78bfa;
+  --violet-glow: 0 0 32px rgba(124,92,255,0.35);
+  --cyan: #5eead4;
+}
+
+* { scrollbar-width: thin; scrollbar-color: rgba(124,92,255,0.4) transparent; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(124,92,255,0.4); border-radius: 999px; }
+
+body {
+  background: radial-gradient(1200px 600px at 20% -10%, rgba(124,92,255,0.18), transparent 60%),
+              radial-gradient(900px 500px at 90% 10%, rgba(94,234,212,0.08), transparent 60%),
+              linear-gradient(180deg, #0a0a14 0%, #0f0f1e 100%);
+  color: #eef0ff;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid var(--border);
+}
+.glass-strong {
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.glow { box-shadow: var(--violet-glow); }
+.gradient-text {
+  background: linear-gradient(90deg, #a78bfa, #7c5cff, #5eead4);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.gradient-border {
+  position: relative;
+}
+.gradient-border::before {
+  content:""; position:absolute; inset:0; border-radius: inherit; padding:1px;
+  background: linear-gradient(135deg, rgba(124,92,255,0.6), rgba(94,234,212,0.25));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude; pointer-events:none;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #7c5cff 0%, #6d28ff 100%);
+  box-shadow: 0 6px 24px rgba(124,92,255,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition: all .2s;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 32px rgba(124,92,255,0.45); }
+.btn-ghost { background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);}
+.btn-ghost:hover { background: rgba(255,255,255,0.10); }
