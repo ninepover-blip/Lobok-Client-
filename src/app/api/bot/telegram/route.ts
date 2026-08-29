@@ -36,40 +36,26 @@ function clearConv(chatId: string) {
 /** Full menu keyboard shown after /menu and /start. */
 function menuKeyboard(linked: boolean) {
   const rows: Array<Array<Record<string, unknown>>> = [
-    [{ text: "🎮 My Cabinet", web_app: { url: `${SITE}/cabinet` } }],
+    [{ text: "🎮 Мой кабинет", web_app: { url: `${SITE}/cabinet` } }],
   ];
 
   if (linked) {
     rows.push(
-      [{ text: "🔑 My Keys", callback_data: "mykeys" }],
-      [{ text: "🔐 2FA Code", callback_data: "get2fa" }],
+      [{ text: "🔑 Мои ключи", callback_data: "mykeys" }],
+      [{ text: "🔐 Код 2FA", callback_data: "get2fa" }],
     );
   } else {
-    rows.push([{ text: "🔗 Link Account", url: `${SITE}/cabinet` }]);
+    rows.push([{ text: "🔗 Привязать аккаунт", url: `${SITE}/cabinet` }]);
   }
 
   rows.push(
-    [{ text: "📦 Buy Key", url: `${SITE}/cabinet#buy` }],
-    [{ text: "💬 Support", callback_data: "support_start" }],
-    [{ text: "📋 News", callback_data: "news" }],
-    [{ text: "ℹ️ About Lobok", callback_data: "about" }],
-    [{ text: "🌐 Website", url: SITE }],
+    [{ text: "📦 Купить ключ", url: `${SITE}/cabinet#buy` }],
+    [{ text: "💬 Поддержка", callback_data: "support_start" }],
+    [{ text: "📋 Новости", callback_data: "news" }],
+    [{ text: "ℹ️ О Lobok", callback_data: "about" }],
+    [{ text: "🌐 Сайт", url: SITE }],
   );
 
-  return { inline_keyboard: rows };
-}
-
-/** Compact reply-keyboard used as fallback (non-inline). */
-function mainKeyboard(linked: boolean) {
-  const rows: Array<Array<Record<string, unknown>>> = [
-    [{ text: "🎮 Open Cabinet", web_app: { url: `${SITE}/cabinet` } }],
-  ];
-  if (linked) {
-    rows.push([{ text: "🔐 Get 2FA Code", callback_data: "get2fa" }]);
-    rows.push([{ text: "🔑 My Keys", callback_data: "mykeys" }]);
-  } else {
-    rows.push([{ text: "🔗 Link Account", url: `${SITE}/cabinet` }]);
-  }
   return { inline_keyboard: rows };
 }
 
@@ -114,7 +100,7 @@ export async function POST(req: NextRequest) {
       if (!user) {
         await sendTelegramMessage(
           chatId,
-          "⚠️ Link your account first. Open the cabinet on the website and press «Link Telegram».",
+          "⚠️ Сначала привяжи аккаунт. Открой кабинет на сайте и нажми «Привязать Telegram».",
           menuKeyboard(false),
         );
         return NextResponse.json({ ok: true });
@@ -123,7 +109,7 @@ export async function POST(req: NextRequest) {
       setConv(chatId, "await_title");
       await sendTelegramMessage(
         chatId,
-        "📝 <b>New Support Ticket</b>\n\nSend me a short <b>title</b> for your ticket.\n\nType /cancel to abort.",
+        "📝 <b>Новый тикет поддержки</b>\n\nОтправь короткое <b>название</b> для тикета.\n\nОтправь /cancel для отмены.",
       );
       return NextResponse.json({ ok: true });
     }
@@ -132,10 +118,10 @@ export async function POST(req: NextRequest) {
     const user = await prisma.user.findFirst({ where: { telegramId: chatId } });
 
     if (!user) {
-      await answerCallback(cq.id, "Account not linked");
+      await answerCallback(cq.id, "Аккаунт не привязан");
       await sendTelegramMessage(
         chatId,
-        "⚠️ Link your account first. Open the cabinet on the website and press «Link Telegram».",
+        "⚠️ Сначала привяжи аккаунт. Открой кабинет на сайте и нажми «Привязать Telegram».",
         menuKeyboard(false),
       );
       return NextResponse.json({ ok: true });
@@ -144,10 +130,10 @@ export async function POST(req: NextRequest) {
     // ── 2FA code ──
     if (data === "get2fa") {
       if (!user.is2FAEnabled) {
-        await answerCallback(cq.id, "2FA is disabled");
+        await answerCallback(cq.id, "2FA отключена");
         await sendTelegramMessage(
           chatId,
-          "🔐 2FA is not enabled on your account.\n\nEnable it in the cabinet for extra security.",
+          "🔐 2FA не включена в твоём аккаунте.\n\nВключи её в кабинете для дополнительной безопасности.",
           menuKeyboard(true),
         );
         return NextResponse.json({ ok: true });
@@ -161,10 +147,10 @@ export async function POST(req: NextRequest) {
           twoFACodeExpires: new Date(Date.now() + 5 * 60 * 1000),
         },
       });
-      await answerCallback(cq.id, "Code sent");
+      await answerCallback(cq.id, "Код отправлен");
       await sendTelegramMessage(
         chatId,
-        `🔐 <b>Your 2FA code:</b>  <code>${code}</code>\n\nExpires in 5 minutes.`,
+        `🔐 <b>Твой код 2FA:</b>  <code>${code}</code>\n\nДействует 5 минут.`,
       );
       return NextResponse.json({ ok: true });
     }
@@ -179,20 +165,20 @@ export async function POST(req: NextRequest) {
       await answerCallback(cq.id);
 
       if (!keys.length) {
-        await sendTelegramMessage(chatId, "🔑 You don't have any keys yet.", menuKeyboard(true));
+        await sendTelegramMessage(chatId, "🔑 У тебя пока нет ключей.", menuKeyboard(true));
         return NextResponse.json({ ok: true });
       }
 
       const txt = keys
         .map((k) => {
           const expiry = k.expiresAt
-            ? `until ${k.expiresAt.toLocaleDateString("en-US")}`
-            : "permanent";
+            ? `до ${k.expiresAt.toLocaleDateString("ru-RU")}`
+            : "бессрочно";
           return `• <code>${k.key}</code>\n  ${k.type} • ${k.status} • ${expiry}`;
         })
         .join("\n\n");
 
-      await sendTelegramMessage(chatId, `🔑 <b>Your Keys</b>\n\n${txt}`, menuKeyboard(true));
+      await sendTelegramMessage(chatId, `🔑 <b>Твои ключи</b>\n\n${txt}`, menuKeyboard(true));
       return NextResponse.json({ ok: true });
     }
 
@@ -206,24 +192,24 @@ export async function POST(req: NextRequest) {
       });
 
       if (!posts.length) {
-        await sendTelegramMessage(chatId, "📋 No news yet. Check back later!", menuKeyboard(true));
+        await sendTelegramMessage(chatId, "📋 Новостей пока нет. Загляни позже!", menuKeyboard(true));
         return NextResponse.json({ ok: true });
       }
 
       const txt = posts
         .map((p, i) => {
-          const date = p.createdAt.toLocaleDateString("en-US", {
+          const date = p.createdAt.toLocaleDateString("ru-RU", {
             year: "numeric",
             month: "short",
             day: "numeric",
           });
           const pinned = p.isPinned ? "📌 " : "";
           const preview = p.content.length > 200 ? p.content.slice(0, 200) + "…" : p.content;
-          return `${pinned}<b>${i + 1}. ${escapeHtml(p.title)}</b>\n📅 ${date} • by ${escapeHtml(p.author.username)}\n${escapeHtml(preview)}`;
+          return `${pinned}<b>${i + 1}. ${escapeHtml(p.title)}</b>\n📅 ${date} • ${escapeHtml(p.author.username)}\n${escapeHtml(preview)}`;
         })
         .join("\n\n──────────────────\n\n");
 
-      await sendTelegramMessage(chatId, `📋 <b>Latest News</b>\n\n${txt}`, menuKeyboard(true));
+      await sendTelegramMessage(chatId, `📋 <b>Последние новости</b>\n\n${txt}`, menuKeyboard(true));
       return NextResponse.json({ ok: true });
     }
 
@@ -231,17 +217,17 @@ export async function POST(req: NextRequest) {
     if (data === "about") {
       await answerCallback(cq.id);
       const about =
-        "ℹ️ <b>About Lobok Client</b>\n\n" +
-        "Lobok Client is a premium Minecraft experience featuring:\n\n" +
-        "🛡️ <b>Anti-cheat</b> — advanced protection for fair gameplay\n" +
-        "🔑 <b>License keys</b> — secure access control\n" +
-        "🔐 <b>2FA via Telegram</b> — extra account security\n" +
-        "🎮 <b>MiniApp cabinet</b> — manage everything from Telegram\n" +
-        "📊 <b>Play stats</b> — track your activity and servers\n" +
-        "💬 <b>In-game chat</b> — stay connected with the community\n" +
-        "🌐 <b>Multi-server</b> — play across multiple servers\n\n" +
-        `🔗 Website: ${SITE}\n` +
-        "💬 Support: tap the button below or use /menu → Support";
+        "ℹ️ <b>О Lobok Client</b>\n\n" +
+        "Lobok Client — приватный чит-клиент для Minecraft 1.16.5:\n\n" +
+        "🛡️ <b>Обход античита</b> — Matrix, Vulcan, AAC, Verus, Grim\n" +
+        "🔑 <b>Лицензионные ключи</b> — безопасный доступ\n" +
+        "🔐 <b>2FA через Telegram</b> — дополнительная защита аккаунта\n" +
+        "🎮 <b>MiniApp кабинет</b> — управление прямо из Telegram\n" +
+        "📊 <b>Игровая статистика</b> — отслеживание активности и серверов\n" +
+        "💬 <b>Глобальный чат</b> — общение с сообществом\n" +
+        "🌐 <b>Мульти-сервер</b> — играй на разных серверах\n\n" +
+        `🔗 Сайт: ${SITE}\n` +
+        "💬 Поддержка: нажми кнопку ниже или /menu → Поддержка";
 
       await sendTelegramMessage(chatId, about, menuKeyboard(true));
       return NextResponse.json({ ok: true });
@@ -267,7 +253,7 @@ export async function POST(req: NextRequest) {
 
   if (text === "/cancel" && conv) {
     clearConv(chatId);
-    await sendTelegramMessage(chatId, "❌ Ticket creation cancelled.", menuKeyboard(true));
+    await sendTelegramMessage(chatId, "❌ Создание тикета отменено.", menuKeyboard(true));
     return NextResponse.json({ ok: true });
   }
 
@@ -278,7 +264,7 @@ export async function POST(req: NextRequest) {
       clearConv(chatId);
       await sendTelegramMessage(
         chatId,
-        "⚠️ Link your account first. Open the cabinet on the website and press «Link Telegram».",
+        "⚠️ Сначала привяжи аккаунт. Открой кабинет на сайте и нажми «Привязать Telegram».",
         menuKeyboard(false),
       );
       return NextResponse.json({ ok: true });
@@ -288,13 +274,13 @@ export async function POST(req: NextRequest) {
     if (conv.step === "await_title") {
       const title = text.trim().slice(0, 120);
       if (!title) {
-        await sendTelegramMessage(chatId, "⚠️ Title cannot be empty. Send a title or /cancel.");
+        await sendTelegramMessage(chatId, "⚠️ Название не может быть пустым. Отправь название или /cancel.");
         return NextResponse.json({ ok: true });
       }
       setConv(chatId, "await_desc", { title });
       await sendTelegramMessage(
         chatId,
-        `📝 Title: <b>${escapeHtml(title)}</b>\n\nNow send me a detailed <b>description</b> of the issue.\n\nType /cancel to abort.`,
+        `📝 Название: <b>${escapeHtml(title)}</b>\n\nТеперь отправь подробное <b>описание</b> проблемы.\n\nОтправь /cancel для отмены.`,
       );
       return NextResponse.json({ ok: true });
     }
@@ -303,7 +289,7 @@ export async function POST(req: NextRequest) {
     if (conv.step === "await_desc") {
       const desc = text.trim().slice(0, 2000);
       if (!desc) {
-        await sendTelegramMessage(chatId, "⚠️ Description cannot be empty. Send a description or /cancel.");
+        await sendTelegramMessage(chatId, "⚠️ Описание не может быть пустым. Отправь описание или /cancel.");
         return NextResponse.json({ ok: true });
       }
 
@@ -319,9 +305,9 @@ export async function POST(req: NextRequest) {
 
       await sendTelegramMessage(
         chatId,
-        `✅ <b>Ticket created!</b>\n\n` +
+        `✅ <b>Тикет создан!</b>\n\n` +
           `#${ticket.id.slice(0, 8)} — <b>${escapeHtml(conv.data.title)}</b>\n\n` +
-          `Our team will review it shortly. You can also continue the conversation in the cabinet.`,
+          `Наша команда рассмотрит его в ближайшее время. Также можешь продолжить разговор в кабинете.`,
         menuKeyboard(true),
       );
       return NextResponse.json({ ok: true });
@@ -349,7 +335,7 @@ export async function POST(req: NextRequest) {
         if (busy) {
           await sendTelegramMessage(
             chatId,
-            `❌ This Telegram is already linked to <b>${escapeHtml(busy.username)}</b>.\nUnlink it first in the cabinet.`,
+            `❌ Этот Telegram уже привязан к <b>${escapeHtml(busy.username)}</b>.\nОтвяжи его сначала в кабинете.`,
           );
           return NextResponse.json({ ok: true });
         }
@@ -365,8 +351,8 @@ export async function POST(req: NextRequest) {
         });
         await sendTelegramMessage(
           chatId,
-          `✅ Done! Telegram linked to <b>${escapeHtml(target.username)}</b>.\n\n` +
-            `Use the menu below to get 2FA codes, manage keys, and more.`,
+          `✅ Готово! Telegram привязан к <b>${escapeHtml(target.username)}</b>.\n\n` +
+            `Используй меню ниже для получения кодов 2FA, управления ключами и другого.`,
           menuKeyboard(true),
         );
         return NextResponse.json({ ok: true });
@@ -374,7 +360,7 @@ export async function POST(req: NextRequest) {
 
       await sendTelegramMessage(
         chatId,
-        "⌛️ Link code expired or already used.\n\nOpen the cabinet on the website and press «Link Telegram» again.",
+        "⌛️ Код привязки истёк или уже использован.\n\nОткрой кабинет на сайте и нажми «Привязать Telegram» снова.",
         menuKeyboard(false),
       );
       return NextResponse.json({ ok: true });
@@ -384,11 +370,11 @@ export async function POST(req: NextRequest) {
     const existing = await prisma.user.findFirst({ where: { telegramId: chatId } });
 
     const welcome = existing
-      ? `👋 Welcome back, <b>${escapeHtml(existing.username)}</b>!\n\nEverything is managed with the buttons below.`
-      : `👋 Hi! I'm <b>Lobok Client Bot</b>.\n\n` +
-        `Link your account in the cabinet on the website to unlock all features:\n` +
-        `🔐 2FA codes • 🔑 Key management • 💬 Support tickets\n\n` +
-        `Use the buttons below to get started.`;
+      ? `👋 С возвращением, <b>${escapeHtml(existing.username)}</b>!\n\nВсем можно управлять через кнопки ниже.`
+      : `👋 Привет! Я <b>Бот Lobok Client</b>.\n\n` +
+        `Привяжи аккаунт в кабинете на сайте, чтобы открыть все функции:\n` +
+        `🔐 Коды 2FA • 🔑 Управление ключами • 💬 Тикеты поддержки\n\n` +
+        `Используй кнопки ниже для начала.`;
 
     await sendTelegramMessage(chatId, welcome, menuKeyboard(!!existing));
     return NextResponse.json({ ok: true });
@@ -397,28 +383,28 @@ export async function POST(req: NextRequest) {
   // --- /menu ---
   if (text === "/menu") {
     const existing = await prisma.user.findFirst({ where: { telegramId: chatId } });
-    await sendTelegramMessage(chatId, "📋 <b>Main Menu</b>", menuKeyboard(!!existing));
+    await sendTelegramMessage(chatId, "📋 <b>Главное меню</b>", menuKeyboard(!!existing));
     return NextResponse.json({ ok: true });
   }
 
   // --- /help ---
   if (text === "/help") {
     const help =
-      "❓ <b>Help — Lobok Client Bot</b>\n\n" +
-      "<b>Commands:</b>\n" +
-      "/menu — Open the main menu\n" +
-      "/help — Show this message\n" +
-      "/start — Restart / link account\n\n" +
-      "<b>Menu sections:</b>\n" +
-      "🎮 <b>My Cabinet</b> — Open the web cabinet (MiniApp)\n" +
-      "🔑 <b>My Keys</b> — View your license keys\n" +
-      "🔐 <b>2FA Code</b> — Get a one-time login code\n" +
-      "📦 <b>Buy Key</b> — Purchase a license key\n" +
-      "💬 <b>Support</b> — Create a support ticket\n" +
-      "📋 <b>News</b> — Read the latest updates\n" +
-      "ℹ️ <b>About Lobok</b> — Learn about features\n" +
-      "🌐 <b>Website</b> — Open the website\n\n" +
-      "Need more help? Create a support ticket from the menu.";
+      "❓ <b>Помощь — Бот Lobok Client</b>\n\n" +
+      "<b>Команды:</b>\n" +
+      "/menu — Открыть главное меню\n" +
+      "/help — Показать это сообщение\n" +
+      "/start — Перезапуск / привязка аккаунта\n\n" +
+      "<b>Разделы меню:</b>\n" +
+      "🎮 <b>Мой кабинет</b> — Открыть веб-кабинет (MiniApp)\n" +
+      "🔑 <b>Мои ключи</b> — Посмотреть лицензионные ключи\n" +
+      "🔐 <b>Код 2FA</b> — Получить одноразовый код входа\n" +
+      "📦 <b>Купить ключ</b> — Приобрести лицензионный ключ\n" +
+      "💬 <b>Поддержка</b> — Создать тикет поддержки\n" +
+      "📋 <b>Новости</b> — Прочитать последние обновления\n" +
+      "ℹ️ <b>О Lobok</b> — Узнать о возможностях\n" +
+      "🌐 <b>Сайт</b> — Открыть сайт\n\n" +
+      "Нужна помощь? Создай тикет через меню.";
 
     await sendTelegramMessage(chatId, help);
     return NextResponse.json({ ok: true });
@@ -426,7 +412,7 @@ export async function POST(req: NextRequest) {
 
   // --- /cancel outside of conversation ---
   if (text === "/cancel") {
-    await sendTelegramMessage(chatId, "Nothing to cancel.", menuKeyboard(true));
+    await sendTelegramMessage(chatId, "Нечего отменять.", menuKeyboard(true));
     return NextResponse.json({ ok: true });
   }
 
@@ -435,8 +421,8 @@ export async function POST(req: NextRequest) {
   await sendTelegramMessage(
     chatId,
     known
-      ? "Pick an option from the menu 👇"
-      : "Link your account in the cabinet on the website first, then come back here.",
+      ? "Выбери опцию из меню 👇"
+      : "Сначала привяжи аккаунт в кабинете на сайте, затем вернись сюда.",
     menuKeyboard(!!known),
   );
   return NextResponse.json({ ok: true });
@@ -450,7 +436,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   if (url.searchParams.get("setWebhook") === "1") {
     if (!BOT_TOKEN) {
-      return NextResponse.json({ error: "TELEGRAM_BOT_TOKEN not set" }, { status: 400 });
+      return NextResponse.json({ error: "TELEGRAM_BOT_TOKEN не задан" }, { status: 400 });
     }
     const hook = `${SITE}/api/bot/telegram`;
     const res = await tgApi("setWebhook", {
@@ -461,7 +447,7 @@ export async function GET(req: NextRequest) {
   }
   return NextResponse.json({
     ok: true,
-    bot: BOT_TOKEN ? "configured" : "missing token",
+    bot: BOT_TOKEN ? "настроен" : "нет токена",
     webhookSetup: `${SITE}/api/bot/telegram?setWebhook=1`,
   });
 }

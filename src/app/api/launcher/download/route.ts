@@ -9,10 +9,15 @@ export async function GET(req: NextRequest){
   await prisma.downloadStat.create({ data:{ ip, version: forClient? "client":"launcher" }}).catch(()=>{});
   // find latest version
   const ver = await prisma.launcherVersion.findFirst({ where:{ forClient, isLatest:true }, orderBy:{createdAt:"desc"}});
-  const downloadUrl = ver?.downloadUrl || "https://example.com/lobok-launcher.exe";
-  // if it's external url, redirect else return json
-  if(downloadUrl.startsWith("http")){
+  const downloadUrl = ver?.downloadUrl;
+  if (downloadUrl && downloadUrl.startsWith("http")) {
     return NextResponse.redirect(downloadUrl);
   }
-  return NextResponse.json({ downloadUrl, version: ver?.version||"1.0.0" });
+  // No download URL set — return JSON with version info
+  return NextResponse.json({
+    version: ver?.version || "1.0.0",
+    downloadUrl: null,
+    message: "Лаунчер доступен для скачивания. Версия: " + (ver?.version || "1.0.0"),
+    changelog: ver?.changelog || "",
+  });
 }

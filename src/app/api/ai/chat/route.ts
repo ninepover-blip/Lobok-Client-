@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
-const SYSTEM_PROMPT = "Ты — помощник Lobok Client. Отвечай на русском языке. Помогаешь с вопросами по лаунчеру, ключам, оплате, настройке клиента. Будь дружелюбным и кратким. Если не знаешь ответ — скажи что нужно обратиться в поддержку.";
+const SYSTEM_PROMPT = "Ты — помощник Lobok Client. Отвечай на русском языке. Помогаешь с вопросами по лаунчеру, ключам, оплате, настройке клиента. Будь дружелюбным и кратким. Если не знаешь ответ — скажи что нужно обратиться в поддержку. Клиент работает на Minecraft 1.16.5, HvH, MetaHvH, обходит Matrix/Vulcan/AAC/Verus/Grim.";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
 
-const FREE_ENDPOINTS = [
+// g4f-compatible free endpoints (OpenAI-compatible API format)
+const G4F_ENDPOINTS = [
   { url: "https://api.g4f.site/v1/chat/completions", model: "gpt-3.5-turbo" },
   { url: "https://api.pawan.krd/v1/chat/completions", model: "gpt-3.5-turbo" },
+  { url: "https://free.chatgpt.tech/v1/chat/completions", model: "gpt-3.5-turbo" },
+  { url: "https://api.openai-proxy.org/v1/chat/completions", model: "gpt-3.5-turbo" },
+  { url: "https://chatgpt-api.openai.com/v1/chat/completions", model: "gpt-3.5-turbo" },
 ];
 
 function generateConversationId(): string {
@@ -44,7 +48,7 @@ async function callOpenAI(messages: ChatMessage[]): Promise<string> {
   return data.choices?.[0]?.message?.content ?? "Нет ответа от модели.";
 }
 
-async function callFreeEndpoint(
+async function callG4FEndpoint(
   messages: ChatMessage[],
   endpoint: { url: string; model: string }
 ): Promise<string> {
@@ -61,7 +65,7 @@ async function callFreeEndpoint(
 
   if (!res.ok) {
     const err = await res.text();
-    throw new Error(`Free endpoint error (${endpoint.url}): ${res.status} ${err}`);
+    throw new Error(`g4f error (${endpoint.url}): ${res.status} ${err}`);
   }
 
   const data = await res.json();
@@ -69,23 +73,31 @@ async function callFreeEndpoint(
 }
 
 async function getAIResponse(messages: ChatMessage[]): Promise<string> {
+  // Try OpenAI API key first
   if (OPENAI_API_KEY) {
     try {
       return await callOpenAI(messages);
     } catch (e) {
-      console.error("OpenAI failed, trying free endpoints:", e);
+      console.error("OpenAI failed, trying g4f endpoints:", e);
     }
   }
 
-  for (const endpoint of FREE_ENDPOINTS) {
+  // Try g4f free endpoints in order
+  for (const endpoint of G4F_ENDPOINTS) {
     try {
-      return await callFreeEndpoint(messages, endpoint);
+      return await callG4FEndpoint(messages, endpoint);
     } catch (e) {
-      console.error(`Free endpoint ${endpoint.url} failed:`, e);
+      console.error(`g4f endpoint ${endpoint.url} failed:`, e);
     }
   }
 
-  return "Извините, AI-помощник временно недоступен. Пожалуйста, обратитесь в поддержку.";
+  // Fallback: helpful static response
+  return "Извините, AI-помощник временно недоступен. Вот что я могу подсказать:\n\n" +
+    "🔑 Ключи — в кабинете на сайте\n" +
+    "🔐 2FA — через Telegram-бота\n" +
+    "💬 Поддержка — создай тикет в кабинете или напиши боту\n" +
+    "📥 Лаунчер — скачай на главной странице\n\n" +
+    "По остальным вопросам обращайся в поддержку: discord.gg/ASXzHaQfvj";
 }
 
 export async function POST(req: NextRequest) {
