@@ -129,28 +129,6 @@ export default async function Home() {
         ))}
       </section>
 
-      {/* free key & launcher */}
-      <section className="grid lg:grid-cols-2 gap-4">
-        <div className="rounded-[22px] glass p-6 space-y-3">
-          <h3 className="font-bold text-lg flex items-center gap-2"><IconGift size={20} /> Бесплатный ключ — 1 в день</h3>
-          <p className="text-sm text-white/60">Каждый день разыгрывается 1 фри-ключ на 24 часа. Условие — подписка на Discord. Успей забрать первым!</p>
-          <div className="flex gap-2">
-            <a href="https://discord.gg/ASXzHaQfvj" target="_blank" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#5865F2] text-white font-medium"><IconDiscord size={16} /> Подписаться на DS</a>
-            <Link href="/buy" className="px-5 py-2.5 rounded-full btn-ghost">Забрать ключ</Link>
-          </div>
-          <p className="text-xs text-white/30">Проверка подписки через Discord • 1 ключ = 1 аккаунт • сбрасывается в 00:00 МСК</p>
-        </div>
-        <div className="rounded-[22px] glass p-6 space-y-3">
-          <h3 className="font-bold text-lg flex items-center gap-2"><IconDownload size={20} /> Лаунчер Lobok</h3>
-          <p className="text-sm text-white/60">Автообновление лаунчера и клиента внутри. Скачай, войди в аккаунт и вставь свой ключ.</p>
-          <div className="flex gap-2">
-            <a href="/api/launcher/download" className="px-5 py-2.5 rounded-full bg-white text-black font-bold">Скачать .exe</a>
-            <Link href="/stats" className="px-5 py-2.5 rounded-full btn-ghost">Статистика</Link>
-          </div>
-          <p className="text-xs text-white/30">Версия лаунчера проверяется при каждом запуске • клиент подтягивает обновления автоматически</p>
-        </div>
-      </section>
-
       {/* features */}
       <section className="rounded-[22px] glass p-6">
         <h3 className="font-bold">Возможности клиента</h3>
@@ -173,40 +151,6 @@ export default async function Home() {
               <div className="text-white/50 text-xs mt-2">{f.d}</div>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* stats preview */}
-      <section className="grid md:grid-cols-3 gap-4">
-        <div className="rounded-[22px] glass p-6">
-          <h4 className="font-bold flex items-center gap-2"><IconDownload size={18} /> Скачивания</h4>
-          <p className="text-3xl font-black mt-2">{downloads.toLocaleString("ru-RU")}</p>
-          <p className="text-xs text-white/40">всего заходов на сервера: {totalJoins.toLocaleString("ru-RU")}</p>
-          <Link href="/stats" className="inline-block mt-3 text-xs px-3 py-1 rounded-full bg-white/5 hover:bg-white/10">Подробнее →</Link>
-        </div>
-
-        <div className="rounded-[22px] glass p-6">
-          <h4 className="font-bold flex items-center gap-2"><IconServer size={18} /> Топ серверов HvH</h4>
-          <div className="mt-3 space-y-2 text-sm">
-            {topServers.length === 0 && <div className="text-white/30 text-xs">Пока нет данных — статистика появится после заходов на сервера.</div>}
-            {topServers.map((srv: { id: string; ip: string; count: number }) => (
-              <div key={srv.id}>
-                <div className="flex justify-between text-xs">
-                  <span className="truncate">{srv.ip}</span>
-                  <span className="text-white/40">{srv.count}</span>
-                </div>
-                <div className="mt-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
-                  <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400" style={{ width: `${Math.round((srv.count / topMax) * 100)}%` }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-[22px] glass p-6">
-          <h4 className="font-bold flex items-center gap-2"><IconServer size={18} /> Обновления</h4>
-          <p className="text-sm text-white/60 mt-2">Лаунчер и клиент обновляются без переустановки. Версия проверяется на сервере.</p>
-          <a href="/api/launcher/version" className="inline-block mt-3 text-xs px-3 py-1 rounded-full bg-white/5 hover:bg-white/10">/api/launcher/version →</a>
         </div>
       </section>
 

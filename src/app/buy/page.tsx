@@ -13,9 +13,9 @@ const TARIFFS = [
 
 const METHODS = [
   { id: "YOOMONEY", title: "ЮMoney", icon: "💳", auto: true },
-  { id: "CARD_RU", title: "Карта МИР", icon: "🏦", auto: false },
-  { id: "MONO_UA", title: "Monobank", icon: "🏦", auto: false },
-  { id: "IBAN_UA", title: "IBAN", icon: "🌍", auto: false },
+  { id: "CARD_RU", title: "Карта МИР", icon: "💳", auto: false },
+  { id: "MONO_UA", title: "Monobank", icon: "💳", auto: false },
+  { id: "IBAN_UA", title: "IBAN", icon: "🏦", auto: false },
 ] as const;
 
 const STEPS = ["Тариф", "Оплата", "Чек"];
@@ -97,6 +97,25 @@ export default function BuyPage() {
 
   const submitReceipt = useCallback(async () => {
     if (!order?.payment?.id) return;
+
+    // Валидация
+    if (!payerName.trim()) {
+      setErr("Введите ФИО плательщика");
+      return;
+    }
+    if (payerName.trim().length < 5) {
+      setErr("ФИО слишком короткое (минимум 5 символов)");
+      return;
+    }
+    if (!receiptPreview) {
+      setErr("Загрузите скриншот чека об оплате");
+      return;
+    }
+    if (!paymentTime) {
+      setErr("Укажите дату и время оплаты");
+      return;
+    }
+
     setSubmitting(true);
     setErr("");
     try {
@@ -228,6 +247,12 @@ export default function BuyPage() {
           <>
             <div style={styles.receiptSection}>
               <h3 style={styles.sectionTitle}>Реквизиты для оплаты</h3>
+              {order.payment?.createdAt && (
+                <div style={styles.receiptInfo}>
+                  <div style={styles.receiptLabel}>Дата заказа:</div>
+                  <div style={styles.receiptValue}>{new Date(order.payment.createdAt).toLocaleString("ru-RU")}</div>
+                </div>
+              )}
               {order.instructions?.payUrl && (
                 <a href={order.instructions.payUrl} target="_blank" rel="noopener" style={styles.payLink}>
                   Перейти к оплате →
@@ -269,7 +294,7 @@ export default function BuyPage() {
             </div>
 
             <div style={styles.receiptSection}>
-              <h3 style={styles.sectionTitle}>Загрузить чек</h3>
+              <h3 style={styles.sectionTitle}>Загрузить чек <span style={{color: '#ef4444'}}>*</span></h3>
               <div style={styles.uploadArea} onClick={() => fileRef.current?.click()}>
                 {receiptPreview ? (
                   <img src={receiptPreview} alt="Чек" style={styles.receiptImg} />
@@ -284,14 +309,13 @@ export default function BuyPage() {
               </div>
               <input
                 style={styles.input}
-                placeholder="ФИО плательщика (необязательно)"
+                placeholder="ФИО плательщика *"
                 value={payerName}
                 onChange={(e) => setPayerName(e.target.value)}
               />
               <input
                 style={styles.input}
                 type="datetime-local"
-                placeholder="Время оплаты"
                 value={paymentTime}
                 onChange={(e) => setPaymentTime(e.target.value)}
               />

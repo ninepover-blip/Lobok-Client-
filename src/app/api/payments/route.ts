@@ -4,8 +4,11 @@ import { getCurrentUser } from "@/lib/auth";
 import { METHODS, MethodId, PAY, TARIFFS, makeLabel, yoomoneyUrl } from "@/lib/payments";
 import { monoConfigured } from "@/lib/monobank";
 import { applyDiscount, checkPromo } from "@/lib/promo";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://lobok-client.vercel.app";
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
+const ADMIN_CHAT = process.env.TELEGRAM_ADMIN_CHAT_ID || "";
 
 /** GET — мои заказы (или все, если админ). */
 export async function GET(req: NextRequest) {
@@ -74,6 +77,9 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // Notify admins
+  notifyAdminsNewOrder(payment, me.username, tariff, method);
+
   // Реквизиты для ручных методов + ссылка для автоматического ЮMoney.
   // Везде используем amountRub/amountUah — это цена уже со скидкой.
   const instructions: Record<string, unknown> = { label };
@@ -114,4 +120,20 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true, payment, instructions });
+}
+
+async function notifyAdminsNewOrder(payment: any, username: string, tariff: any, method: string) {
+  if (!BOT_TOKEN || !ADMIN_CHAT) return;
+  try {
+    const methodTitle = METHODS[method as MethodId]?.title || method;
+    const msg =
+      `📦 *Новый заказ!*\n\n` +
+      `Пользователь: ${username}\n` +
+      `Тариф: ${tariff.title} (${payment.amountRub}₽ / ${payment.amountUah}₴)\n` +
+      `Способ: ${methodTitle}\n` +
+      `Метка: \`${payment.label}\`\n` +
+      `Статус: ${payment.status}\n\n` +
+      `[Открыть админку](${SITE}/admin)`;
+    await sendTelegramMessage(ADMIN_CHAT, msg);
+  } catch {}
 }

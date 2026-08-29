@@ -49,8 +49,9 @@ function menuKeyboard(linked: boolean) {
   }
 
   rows.push(
-    [{ text: "📦 Купить ключ", url: `${SITE}/cabinet#buy` }],
+    [{ text: "📦 Купить ключ", url: `${SITE}/buy` }],
     [{ text: "💬 Поддержка", callback_data: "support_start" }],
+    [{ text: "🤖 AI-помощник", callback_data: "ai_support" }],
     [{ text: "📋 Новости", callback_data: "news" }],
     [{ text: "ℹ️ О Lobok", callback_data: "about" }],
     [{ text: "🌐 Сайт", url: SITE }],
@@ -90,6 +91,18 @@ export async function POST(req: NextRequest) {
     const cq = body.callback_query;
     const chatId = String(cq.message?.chat?.id ?? cq.from.id);
     const data: string = cq.data || "";
+
+    // --- AI support flow intercept ---
+    if (data === "ai_support" || data === "ai_cancel") {
+      await answerCallback(cq.id);
+      clearConv(chatId);
+      setConv(chatId, "ai_chat", {});
+      await sendTelegramMessage(
+        chatId,
+        "🤖 <b>AI-помощник Lobok</b>\n\nЗадай вопрос по лаунчеру, ключам, оплате или настройке клиента.\n\nОтправь /cancel для выхода из чата с AI.",
+      );
+      return NextResponse.json({ ok: true });
+    }
 
     // --- support flow intercept (must run before auth check) ---
     if (data === "support_start" || data === "support_cancel") {
@@ -259,6 +272,38 @@ export async function POST(req: NextRequest) {
 
   if (conv) {
     const user = await prisma.user.findFirst({ where: { telegramId: chatId } });
+
+    // AI chat mode
+    if (conv.step === "ai_chat") {
+      if (text.toLowerCase() === "/cancel" || text.toLowerCase() === "выход") {
+        clearConv(chatId);
+        await sendTelegramMessage(chatId, "🤖 Выход из чата с AI.", menuKeyboard(!!user));
+        return NextResponse.json({ ok: true });
+      }
+
+      await sendTelegramMessage(chatId, "⏳ Думаю...");
+
+      try {
+        const aiRes = await fetch(`${SITE}/api/ai/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text }),
+        });
+        const aiData = await aiRes.json();
+        const reply = aiData.reply || "Не удалось получить ответ. Попробуй позже или обратись в поддержку.";
+        await sendTelegramMessage(chatId, `🤖 ${reply}`, {
+          inline_keyboard: [
+            [{ text: "💬 Задать ещё вопрос", callback_data: "ai_support" }],
+            [{ text: "🔙 Меню", callback_data: "ai_cancel" }],
+          ],
+        });
+      } catch {
+        await sendTelegramMessage(chatId, "❌ Ошибка при обращении к AI. Попробуй позже.", menuKeyboard(!!user));
+      }
+
+      clearConv(chatId);
+      return NextResponse.json({ ok: true });
+    }
 
     if (!user) {
       clearConv(chatId);

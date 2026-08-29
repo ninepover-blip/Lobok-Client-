@@ -519,6 +519,17 @@ export default function AdminPage() {
                     {p.user?.username || "—"} • {p.keyType} • {p.method} • {p.amountRub}₽/{p.amountUah}₴ •{" "}
                     {new Date(p.createdAt).toLocaleString("ru-RU")}
                   </div>
+                  {p.payerName && (
+                    <div className="text-xs text-white/50 mt-1">ФИО: {p.payerName}</div>
+                  )}
+                  {p.paymentTime && (
+                    <div className="text-xs text-white/50">Оплачено: {new Date(p.paymentTime).toLocaleString("ru-RU")}</div>
+                  )}
+                  {p.receiptData && (
+                    <div className="mt-2">
+                      <img src={p.receiptData} alt="Чек" className="max-h-32 rounded-lg border border-white/10" />
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <span

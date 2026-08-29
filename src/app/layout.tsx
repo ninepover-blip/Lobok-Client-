@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import PolicyPopup from "@/components/PolicyPopup";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="ru" className={`${geist.variable} ${mono.variable} dark`}>
       <body className="min-h-screen flex flex-col antialiased">
+        <PolicyPopup />
         <Navbar />
         <main className="flex-1">{children}</main>
         <footer className="border-t border-white/5 py-8 text-xs text-white/40">
