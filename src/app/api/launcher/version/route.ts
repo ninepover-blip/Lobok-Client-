@@ -6,6 +6,6 @@ export async function GET(){
   const client = await prisma.launcherVersion.findFirst({ where:{ forClient:true, isLatest:true }, orderBy:{ createdAt:"desc"}});
   return NextResponse.json({
     launcher: launcher || { version:"1.0.0", downloadUrl:"/api/launcher/download", changelog:"Initial" },
-    client: client || { version:"2.4.0", changelog:"HvH fixes" },
+    client: client || { version:"2.4.0", downloadUrl:"/api/launcher/download?client=1", changelog:"HvH fixes" },
   });
 }
