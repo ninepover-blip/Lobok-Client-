@@ -19,6 +19,7 @@ enum KeyType {
   D90
   FOREVER
   FREE
+  D1
 }
 
 enum KeyStatus {
@@ -46,65 +47,144 @@ enum Channel {
   SUPPORT
 }
 
+enum PaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum PaymentMethod {
+  YOOMONEY
+  CARD_RU
+  MONO_UA
+  IBAN_UA
+}
+
 model User {
-  id                String   @id @default(cuid())
-  username          String   @unique // @USER login
-  passwordHash      String
-  role              Role     @default(USER)
-  avatarUrl         String?  // default /lobok.jpg if null
-  telegramId        String?  @unique
-  telegramUsername  String?
-  is2FAEnabled      Boolean  @default(false)
-  twoFACode         String?  // temp code
-  twoFACodeExpires  DateTime?
-  hwid              String?  // last device id
-  ip                String?
-  isBanned          Boolean  @default(false)
-  banExpiresAt      DateTime?
-  isMuted           Boolean  @default(false)
-  muteExpiresAt     DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String    @id @default(cuid())
+  username         String    @unique // @USER login
+  passwordHash     String
+  role             Role      @default(USER)
+  avatarUrl        String? // default /lobok.jpg if null
+  telegramId       String?   @unique
+  telegramUsername String?
+  is2FAEnabled     Boolean   @default(false)
+  twoFACode        String? // temp code
+  twoFACodeExpires DateTime?
+  /// Код восстановления пароля — присылается в Telegram
+  resetCode        String?
+  resetCodeExpires DateTime?
+  hwid             String? // last device id
+  ip               String?
+  isBanned         Boolean   @default(false)
+  banExpiresAt     DateTime?
+  isMuted          Boolean   @default(false)
+  muteExpiresAt    DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   // relations
-  keys              LicenseKey[] @relation("KeyOwner")
-  createdKeys       LicenseKey[] @relation("KeyCreator")
+  keys              LicenseKey[]    @relation("KeyOwner")
+  createdKeys       LicenseKey[]    @relation("KeyCreator")
   news              News[]
   messages          ChatMessage[]
   tickets           SupportTicket[] @relation("TicketAuthor")
   assignedTickets   SupportTicket[] @relation("TicketAssignee")
-  punishments       Punishment[] @relation("PunishmentTarget")
-  issuedPunishments Punishment[] @relation("PunishmentIssuer")
+  punishments       Punishment[]    @relation("PunishmentTarget")
+  issuedPunishments Punishment[]    @relation("PunishmentIssuer")
   freeKeyClaims     FreeKeyClaim[]
   downloadStats     DownloadStat[]
   serverStats       ServerStat[]
+  sessions          PlaySession[]
+  payments          Payment[]
+  promoRedemptions  PromoRedemption[]
 
   // for username change tracking
-  previousUsername  String?
+  previousUsername String?
+
+  // profile / activity
+  lastSeenAt      DateTime?
+  playtimeMinutes Int       @default(0) // суммарно наиграно минут в клиенте
+
+  // Telegram MiniApp: привязка одноразовым кодом с сайта, без команд
+  telegramLinkCode String?   @unique
+  telegramLinkExp  DateTime?
+}
+
+/// Игровая сессия в клиенте: лаунчер шлёт heartbeat, отсюда считаются часы
+/// и «топ серверов, на которых играет игрок».
+model PlaySession {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serverIp  String?
+  startedAt DateTime  @default(now())
+  endedAt   DateTime?
+  minutes   Int       @default(0)
+
+  @@index([userId])
+  @@index([startedAt])
+}
+
+/// Заказ на покупку ключа (автооплата).
+model Payment {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyType       KeyType
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  amountRub     Int
+  amountUah     Int
+  /// Уникальная метка платежа — покупатель указывает её в комментарии к переводу
+  label         String        @unique
+  operationId   String?
+  issuedKeyId   String?       @unique
+  /// Применённый промокод: цена в amountRub/amountUah уже со скидкой
+  promoId       String?
+  promo         Promo?        @relation(fields: [promoId], references: [id], onDelete: SetNull)
+  promoCode     String?
+  promoDiscount Int?
+  /// Полная цена по тарифу до скидки — для истории и отчётов
+  fullAmountRub Int?
+  fullAmountUah Int?
+  promoRedemption PromoRedemption?
+  confirmedById String?
+  /// Кто и почему отменил заказ (для отмены уже выданной покупки)
+  cancelledById String?
+  cancelReason  String?
+  cancelledAt   DateTime?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([label])
 }
 
 model LicenseKey {
-  id          String    @id @default(cuid())
-  key         String    @unique // Lobok-XXXXXXXXXXXX-client
-  type        KeyType
-  status      KeyStatus @default(UNUSED)
-  durationDays Int?     // 30,90,null for forever
-  priceRub    Int?      // 100,250,400
-  priceUah    Int?      // 50,125,200
-  ownerId     String?
-  owner       User?     @relation("KeyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  id            String        @id @default(cuid())
+  key           String        @unique // Lobok-XXXXXXXXXXXX-client
+  type          KeyType
+  status        KeyStatus     @default(UNUSED)
+  durationDays  Int? // 30,90,null for forever
+  priceRub      Int? // 100,250,400
+  priceUah      Int? // 50,125,200
+  ownerId       String?
+  owner         User?         @relation("KeyOwner", fields: [ownerId], references: [id], onDelete: SetNull)
   ownerUsername String? // denormalized @USER for quick check
-  hwid        String?   // 1 device bind
-  ip          String?   // ip bind
-  activatedAt DateTime?
-  expiresAt   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  createdById String?
-  createdBy   User?     @relation("KeyCreator", fields: [createdById], references: [id], onDelete: SetNull)
-  revokedAt   DateTime?
+  hwid          String? // 1 device bind
+  ip            String? // ip bind
+  activatedAt   DateTime?
+  expiresAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  createdById   String?
+  createdBy     User?         @relation("KeyCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  revokedAt     DateTime?
   revokedReason String?
-  freeClaim   FreeKeyClaim?
+  freeClaim     FreeKeyClaim?
 
   @@index([ownerId])
   @@index([key])
@@ -115,7 +195,7 @@ model News {
   title     String
   content   String   @db.Text
   mediaUrls String[] // photos, video links
-  mediaType String?  // "photo"|"video"|"mixed"
+  mediaType String? // "photo"|"video"|"mixed"
   authorId  String
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
@@ -126,18 +206,18 @@ model News {
 }
 
 model ChatMessage {
-  id        String   @id @default(cuid())
-  channel   Channel  @default(GLOBAL)
-  ticketId  String?
-  ticket    SupportTicket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  content   String   @db.Text
-  isPinned  Boolean  @default(false) // true if from ADMIN/MODERATOR
-  isDeleted Boolean  @default(false)
+  id          String         @id @default(cuid())
+  channel     Channel        @default(GLOBAL)
+  ticketId    String?
+  ticket      SupportTicket? @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content     String         @db.Text
+  isPinned    Boolean        @default(false) // true if from ADMIN/MODERATOR
+  isDeleted   Boolean        @default(false)
   deletedById String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   @@index([channel])
   @@index([ticketId])
@@ -145,17 +225,17 @@ model ChatMessage {
 }
 
 model SupportTicket {
-  id          String       @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
-  description String       @db.Text
+  description String        @db.Text
   authorId    String
-  author      User         @relation("TicketAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  author      User          @relation("TicketAuthor", fields: [authorId], references: [id], onDelete: Cascade)
   assigneeId  String?
-  assignee    User?        @relation("TicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
-  status      TicketStatus @default(OPEN)
+  assignee    User?         @relation("TicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  status      TicketStatus  @default(OPEN)
   messages    ChatMessage[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@index([authorId])
   @@index([status])
@@ -170,8 +250,8 @@ model Punishment {
   moderatorId String
   moderator   User           @relation("PunishmentIssuer", fields: [moderatorId], references: [id], onDelete: Cascade)
   reason      String?
-  duration    String?        // e.g. "30m", "2h", "7d"
-  durationMs  BigInt?        // ms for easy calc
+  duration    String? // e.g. "30m", "2h", "7d"
+  durationMs  BigInt? // ms for easy calc
   expiresAt   DateTime?
   active      Boolean        @default(true)
   createdAt   DateTime       @default(now())
@@ -199,7 +279,7 @@ model DownloadStat {
   userId    String?
   user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   ip        String?
-  version   String?  // launcher/client version
+  version   String? // launcher/client version
   createdAt DateTime @default(now())
 
   @@index([createdAt])
@@ -231,7 +311,54 @@ model LauncherVersion {
 }
 
 model Setting {
-  key   String @id
-  value String @db.Text
+  key       String   @id
+  value     String   @db.Text
   updatedAt DateTime @updatedAt
+}
+
+/// Промокод на скидку. Создаётся админом, вводится покупателем при оплате.
+model Promo {
+  id          String    @id @default(cuid())
+  /// Название промокода. Хранится в верхнем регистре, сравнение регистронезависимое.
+  code        String    @unique
+  /// Размер скидки в процентах, 1..100
+  discount    Int
+  /// Сколько дней промокод активен с момента создания. null = бессрочно.
+  durationDays Int?
+  /// Дата, после которой промокод не действует. null = бессрочно.
+  expiresAt   DateTime?
+  /// Максимальное количество использований. null = без ограничения.
+  maxUses     Int?
+  /// Сколько раз уже использован (инкрементится при выдаче ключа).
+  uses        Int       @default(0)
+  /// Можно ли выключить промокод, не удаляя его.
+  isActive    Boolean   @default(true)
+  comment     String?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  redemptions PromoRedemption[]
+  payments    Payment[]
+
+  @@index([code])
+  @@index([isActive])
+}
+
+/// Факт применения промокода к оплаченному заказу.
+/// Отдельная таблица нужна, чтобы один человек не активировал один код много раз.
+model PromoRedemption {
+  id        String   @id @default(cuid())
+  promoId   String
+  promo     Promo    @relation(fields: [promoId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentId String   @unique
+  payment   Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  /// Один пользователь — одна активация конкретного промокода.
+  @@unique([promoId, userId])
+  @@index([promoId])
+  @@index([userId])
 }

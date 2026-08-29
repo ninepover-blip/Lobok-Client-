@@ -19,13 +19,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen flex flex-col antialiased">
         <Navbar />
         <main className="flex-1">{children}</main>
-        <footer className="border-t border-white/5 py-8 text-center text-xs text-white/40">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+        <footer className="border-t border-white/5 py-8 text-xs text-white/40">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <span>© 2026 Lobok Client — MetaHvH / HvH • Все права защищены</span>
-            <span className="flex gap-3">
-              <a className="hover:text-white" href="https://discord.gg/ASXzHaQfvj" target="_blank">Discord</a>
-              <a className="hover:text-white" href="/stats">Статистика</a>
-              <a className="hover:text-white" href="https://lobok-client.vercel.app">lobok-client.vercel.app</a>
+            <span className="flex flex-wrap justify-center items-center gap-3">
+              <a className="hover:text-white transition-colors" href="https://discord.gg/ASXzHaQfvj" target="_blank" rel="noopener">Discord</a>
+              <a className="hover:text-white transition-colors" href="/stats">Статистика</a>
+              <a
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-violet-500/40 bg-violet-500/10 text-violet-200 hover:bg-violet-500/20 hover:text-white transition-colors font-medium"
+                href="/legal"
+              >
+                Политика и условия
+              </a>
             </span>
           </div>
         </footer>

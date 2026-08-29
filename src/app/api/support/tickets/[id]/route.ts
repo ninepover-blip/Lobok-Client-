@@ -33,8 +33,30 @@ export async function POST(req: NextRequest, { params }:{ params:Promise<{id:str
 export async function PATCH(req: NextRequest, { params }:{ params:Promise<{id:string}>}){
   const { id } = await params;
   const me = await getCurrentUser();
-  if(!me || (me.role!=="ADMIN" && me.role!=="MODERATOR")) return NextResponse.json({error:"Forbidden"},{status:403});
+  if(!me) return NextResponse.json({error:"Не авторизован"},{status:401});
+
+  const ticket = await prisma.supportTicket.findUnique({ where:{ id }});
+  if(!ticket) return NextResponse.json({error:"Тикет не найден"},{status:404});
+
+  const isStaff = me.role==="ADMIN" || me.role==="MODERATOR";
+  const isAuthor = ticket.authorId === me.id;
+  if(!isStaff && !isAuthor) return NextResponse.json({error:"Нет доступа"},{status:403});
+
   const { status, assigneeId } = await req.json();
-  const updated = await prisma.supportTicket.update({ where:{ id }, data:{ status: status||undefined, assigneeId: assigneeId||undefined }});
+  if(status && !["OPEN","PENDING","CLOSED"].includes(status)){
+    return NextResponse.json({error:"Неизвестный статус"},{status:400});
+  }
+  // автор может только закрыть свой тикет; переоткрывать и назначать — саппорт
+  if(!isStaff && status && status!=="CLOSED"){
+    return NextResponse.json({error:"Переоткрыть тикет может только саппорт"},{status:403});
+  }
+
+  const updated = await prisma.supportTicket.update({
+    where:{ id },
+    data:{
+      status: status||undefined,
+      assigneeId: isStaff ? (assigneeId||undefined) : undefined,
+    }
+  });
   return NextResponse.json({ ok:true, ticket: updated });
 }

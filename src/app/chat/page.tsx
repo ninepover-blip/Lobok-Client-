@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
+import { RoleName } from "@/components/Icons";
 
 export default function ChatPage(){
   const [msgs,setMsgs]=useState<any[]>([]);
@@ -42,9 +43,7 @@ export default function ChatPage(){
             <img src={m.user.avatarUrl||"/lobok.jpg"} className="w-8 h-8 rounded-full object-cover flex-shrink-0" alt="" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 text-xs">
-                <span className={`font-bold ${m.user.role==="ADMIN"?"text-red-400":m.user.role==="MODERATOR"?"text-blue-400":"text-white"}`}>{m.user.username}</span>
-                {m.user.role==="MODERATOR" && <span className="w-2 h-2 rounded-full bg-blue-500" />}
-                {m.user.role==="ADMIN" && <span className="w-2 h-2 rounded-full bg-gradient-to-r from-violet-500 to-blue-500" />}
+                <RoleName username={m.user.username} role={m.user.role} size={13} />
                 {m.isPinned && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-black text-[10px] font-bold">ЗАКРЕП</span>}
                 <span className="text-white/30 ml-auto">{new Date(m.createdAt).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}</span>
                 {isMod && <button onClick={()=>del(m.id)} className="text-red-400 hover:underline ml-2">удалить</button>}
@@ -56,11 +55,10 @@ export default function ChatPage(){
         <div ref={bottomRef} />
       </div>
       <form onSubmit={send} className="glass rounded-b-[22px] border-t-0 p-3 flex gap-2">
-        <input value={text} onChange={e=>setText(e.target.value)} placeholder={isMod?"/mute @user 10m  |  /ban @user 30d  |  /warn @user 7d  |  /banip 1.1.1.1 30d — пиши сюда":"Написать сообщение..."} className="flex-1 px-4 py-3 rounded-full bg-white/5 border border-white/10 outline-none text-sm" />
+        <input value={text} onChange={e=>setText(e.target.value)} placeholder="Написать сообщение..." className="flex-1 px-4 py-3 rounded-full bg-white/5 border border-white/10 outline-none text-sm" />
         <button className="px-6 py-3 rounded-full btn-primary text-white font-bold text-sm">Отправить</button>
       </form>
       {err && <div className="mt-2 text-sm text-red-400 bg-red-500/10 p-2 rounded-xl">{err}</div>}
-      {isMod && <div className="mt-2 text-xs text-white/30 p-2 rounded-xl bg-white/5">Команды: <code>/mute @user m/h/d</code> <code>/ban @user m/h/d</code> <code>/warn @user m/h/d</code> (3 варна за месяц = бан 30d) <code>/banip 1.2.3.4 30d</code> <code>/unban @user</code> — сообщения модеров закрепляются.</div>}
     </div>
   )
 }

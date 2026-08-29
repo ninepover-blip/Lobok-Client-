@@ -59,3 +59,10 @@ body {
 .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 32px rgba(124,92,255,0.45); }
 .btn-ghost { background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);}
 .btn-ghost:hover { background: rgba(255,255,255,0.10); }
+
+/* появление выпадающих меню в шапке */
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-in { animation: menuIn .14s ease-out; transform-origin: top right; }

@@ -11,13 +11,15 @@ export async function GET(){
   const weekAgo = new Date(Date.now()-7*86400000);
   const weekDownloads = await prisma.downloadStat.count({ where:{ createdAt:{ gte: weekAgo }}});
 
+  const playAgg = await prisma.user.aggregate({ _sum:{ playtimeMinutes:true }});
+
   return NextResponse.json({
-    downloads: downloads||12847,
-    servers: servers||342,
-    totalJoins: totalServerJoins._sum.count|| 98432,
+    downloads,
+    servers,
+    totalJoins: totalServerJoins._sum.count ?? 0,
     users,
     activeKeys: keys,
     weekDownloads,
-    online: Math.floor(700+Math.random()*400)
+    playHours: Math.round((playAgg._sum.playtimeMinutes ?? 0)/60),
   });
 }

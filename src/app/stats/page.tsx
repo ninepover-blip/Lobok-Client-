@@ -1,61 +1,116 @@
 "use client";
 import { useEffect, useState } from "react";
+import { IconChart, IconClock, IconDownload, IconKey, IconServer } from "@/components/Icons";
 
-export default function StatsPage(){
-  const [stats,setStats]=useState<any>(null);
-  const [servers,setServers]=useState<any[]>([]);
-  useEffect(()=>{
-    fetch("/api/stats").then(r=>r.json()).then(setStats);
-    fetch("/api/stats/server?limit=20").then(r=>r.json()).then(d=>setServers(d.servers||[]));
-  },[]);
-  async function reportServer(){
-    const ip=prompt("IP сервера для подсчёта (при заходе на сервер клиент шлёт IP сюда):","MetaHvH.net");
-    if(!ip) return;
-    const username=prompt("Твой @username (необязательно):","")||undefined;
-    await fetch("/api/stats/server",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ip, username})});
-    alert("Учёт +1"); location.reload();
-  }
+function playtime(min: number) {
+  const h = Math.floor(min / 60);
+  return h > 0 ? `${h} ч` : `${min} мин`;
+}
+
+export default function StatsPage() {
+  const [stats, setStats] = useState<any>(null);
+  const [servers, setServers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/stats").then((r) => r.json()),
+      fetch("/api/stats/server?limit=20").then((r) => r.json()),
+    ])
+      .then(([s, sv]) => {
+        setStats(s);
+        setServers(sv.servers || []);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  const cards = [
+    { icon: <IconDownload size={16} />, t: "Скачиваний", v: stats?.downloads },
+    { icon: <IconServer size={16} />, t: "Серверов", v: stats?.servers },
+    { icon: <IconChart size={16} />, t: "Всего заходов", v: stats?.totalJoins },
+    { icon: <IconKey size={16} />, t: "Активных ключей", v: stats?.activeKeys },
+    { icon: <IconClock size={16} />, t: "Часов в игре", v: stats?.playHours },
+  ];
+
+  const max = Math.max(1, ...servers.map((s) => s.count));
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-      <div className="grid md:grid-cols-4 gap-4">
-        {[
-          ["Скачиваний", stats?.downloads ?? "—"],
-          ["Серверов", stats?.servers ?? "—"],
-          ["Всего заходов", stats?.totalJoins ?? "—"],
-          ["Активных ключей", stats?.activeKeys ?? "—"],
-        ].map(([t,v])=>(
-          <div key={t as string} className="rounded-[22px] glass p-5 text-center">
-            <div className="text-xs text-white/40">{t}</div><div className="text-2xl font-black mt-1">{v as string}</div>
+      <div>
+        <h1 className="text-2xl font-black">Статистика</h1>
+        <p className="text-sm text-white/50">
+          Живые данные: клиент сообщает сервер и время игры, сайт считает скачивания и ключи.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {cards.map((c) => (
+          <div key={c.t} className="rounded-[22px] glass p-5">
+            <div className="flex items-center gap-1.5 text-xs text-white/40">
+              {c.icon} {c.t}
+            </div>
+            <div className="text-2xl font-black mt-1.5">
+              {loading ? "…" : (c.v ?? 0).toLocaleString("ru-RU")}
+            </div>
           </div>
         ))}
       </div>
-      <div className="rounded-[22px] glass p-6 flex flex-wrap gap-3 items-center justify-between">
-        <div>
-          <h3 className="font-bold">Статистика серверов</h3>
-          <p className="text-sm text-white/50">При заходе на сервер клиент отправляет IP на /api/stats/server → идёт подсчёт</p>
-        </div>
-        <button onClick={reportServer} className="px-5 py-2.5 rounded-full btn-primary text-white font-bold">Отправить IP (тест)</button>
-      </div>
-      <div className="rounded-[22px] glass p-4">
-        <h4 className="font-bold text-sm mb-3">Топ серверов где играют с Lobok</h4>
-        {servers.length===0 ? <div className="text-sm text-white/30 py-6 text-center">Пока нет данных — первые заходы появятся после POST /api/stats/server {"{ip}"} </div> : (
-          <div className="space-y-2">
-            {servers.map((s:any)=>(
-              <div key={s.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/5">
-                <span className="font-mono text-sm">{s.ip}</span><span className="text-sm font-bold">{s.count} заходов</span>
+
+      <div className="rounded-[22px] glass p-6">
+        <h3 className="font-bold flex items-center gap-2">
+          <IconServer size={18} /> Топ серверов, где играют с Lobok
+        </h3>
+        <p className="text-xs text-white/40 mt-1">
+          Учитывается автоматически при заходе на сервер с активным ключом.
+        </p>
+
+        <div className="mt-4 space-y-3">
+          {loading && <div className="text-sm text-white/30">Загрузка…</div>}
+          {!loading && servers.length === 0 && (
+            <div className="text-sm text-white/30 py-6 text-center">
+              Пока нет данных о серверах.
+            </div>
+          )}
+          {servers.map((s, i) => (
+            <div key={s.id} className="flex items-center gap-3">
+              <span className="w-6 text-xs text-white/30 font-bold shrink-0">#{i + 1}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex justify-between text-sm">
+                  <span className="truncate font-medium">{s.ip}</span>
+                  <span className="text-white/40 text-xs shrink-0 ml-2">
+                    {s.count} {s.count === 1 ? "заход" : "заходов"}
+                  </span>
+                </div>
+                <div className="mt-1 h-2 rounded-full bg-white/5 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400"
+                    style={{ width: `${Math.round((s.count / max) * 100)}%` }}
+                  />
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-        <div className="mt-4 text-xs text-white/30">
-          <div>Пример интеграции в лаунчер (Java):</div>
-          <pre className="mt-2 p-3 rounded-xl bg-black/40 overflow-x-auto">fetch("https://lobok-client.vercel.app/api/stats/server", {"{"}
-  method:"POST",
-  headers:{"{"}"Content-Type":"application/json"{"}"},
-  body: JSON.stringify({"{"} ip: serverIP, username: mcUsername {"}"})
-{"}"});</pre>
+            </div>
+          ))}
         </div>
+      </div>
+
+      <div className="rounded-[22px] glass p-6">
+        <h3 className="font-bold text-sm">Интеграция для лаунчера</h3>
+        <p className="text-xs text-white/40 mt-1">
+          Клиент отправляет заход и время игры — часы и топ серверов появятся в профиле игрока.
+        </p>
+        <pre className="mt-3 text-[11px] bg-black/40 border border-white/5 rounded-xl p-3 overflow-x-auto">
+{`POST /api/stats/session
+{ "key": "Lobok-XXXXXXXXXXXX-client",
+  "serverIp": "metahvh.net",
+  "action": "start" }
+
+// далее раз в минуту:
+{ "key": "...", "serverIp": "metahvh.net", "action": "ping", "minutes": 1 }
+
+// при выходе:
+{ "key": "...", "action": "stop" }`}
+        </pre>
       </div>
     </div>
-  )
+  );
 }
