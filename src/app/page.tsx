@@ -124,7 +124,7 @@ export default async function Home() {
               <li>✓ MetaHvH конфиги</li>
               <li>✓ Поддержка 24/7</li>
             </ul>
-            <Link href="/cabinet" className={`mt-6 w-full py-3 rounded-full text-center font-semibold ${p.popular?"btn-primary text-white":"bg-white text-black hover:bg-zinc-100"}`}>Получить ключ</Link>
+            <Link href="/buy" className={`mt-6 w-full py-3 rounded-full text-center font-semibold ${p.popular?"btn-primary text-white":"bg-white text-black hover:bg-zinc-100"}`}>Получить ключ</Link>
           </div>
         ))}
       </section>
@@ -136,7 +136,7 @@ export default async function Home() {
           <p className="text-sm text-white/60">Каждый день разыгрывается 1 фри-ключ на 24 часа. Условие — подписка на Discord. Успей забрать первым!</p>
           <div className="flex gap-2">
             <a href="https://discord.gg/ASXzHaQfvj" target="_blank" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#5865F2] text-white font-medium"><IconDiscord size={16} /> Подписаться на DS</a>
-            <Link href="/cabinet" className="px-5 py-2.5 rounded-full btn-ghost">Забрать ключ</Link>
+            <Link href="/buy" className="px-5 py-2.5 rounded-full btn-ghost">Забрать ключ</Link>
           </div>
           <p className="text-xs text-white/30">Проверка подписки через Discord • 1 ключ = 1 аккаунт • сбрасывается в 00:00 МСК</p>
         </div>
