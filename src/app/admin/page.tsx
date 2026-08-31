@@ -13,6 +13,7 @@ import {
   RoleBadge,
   RoleName,
 } from "@/components/Icons";
+import Link from "next/link";
 
 type Tab = "keys" | "news" | "users" | "payments" | "promo" | "site";
 
@@ -390,7 +391,7 @@ export default function AdminPage() {
                       onClick={() => {
                         if (confirm("Удалить ключ?")) fetch(`/api/keys/${k.id}`, { method: "DELETE" }).then(reload);
                       }}
-                      className="px-2.5 py-1 rounded-full bg-white/10 text-white/60 text-xs border border-white/10"
+                      className="px-2.5 py-1 rounded-full bg-red-500/15 text-red-300 text-xs border border-red-500/30"
                     >
                       Del
                     </button>
@@ -475,9 +476,13 @@ export default function AdminPage() {
           <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-[500px] overflow-y-auto">
             {users.map((u) => (
               <div key={u.id} className="p-3 rounded-xl bg-white/[0.03] border border-white/5 flex items-center gap-3">
-                <img src={u.avatarUrl || "/lobok.jpg"} className="w-9 h-9 rounded-full object-cover" alt="" />
+                <Link href={`/profile/${u.username}`}>
+                  <img src={u.avatarUrl || "/lobok.jpg"} className="w-9 h-9 rounded-full object-cover cursor-pointer hover:opacity-80" alt="" />
+                </Link>
                 <div className="flex-1 min-w-0">
-                  <RoleName username={u.username} role={u.role} size={13} />
+                  <Link href={`/profile/${u.username}`} className="hover:opacity-80">
+                    <RoleName username={u.username} role={u.role} size={13} />
+                  </Link>
                   <div className="text-xs text-white/40 flex items-center gap-1.5 mt-0.5">
                     <RoleBadge role={u.role} />
                     {u.isBanned && <span className="text-white/60">BAN</span>}
@@ -546,9 +551,9 @@ export default function AdminPage() {
                   {p.status === "PENDING" && (
                     <button
                       onClick={() => confirmPayment(p.id)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full btn-primary text-white text-xs font-bold"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/90 text-black text-xs font-bold"
                     >
-                      <IconCheck size={13} /> Выдать ключ
+                      <IconCheck size={13} className="text-green-500" /> Выдать ключ
                     </button>
                   )}
                   {p.status !== "CANCELLED" && (
@@ -559,7 +564,7 @@ export default function AdminPage() {
                           ? "Отменить покупку и отозвать выданный ключ"
                           : "Отменить заказ"
                       }
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white/80 hover:border-white/20 text-xs font-bold"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-500/15 border border-red-500/30 text-red-300 hover:bg-red-500/25 text-xs font-bold"
                     >
                       {p.status === "PAID" ? "Отменить выдачу" : "Отменить"}
                     </button>

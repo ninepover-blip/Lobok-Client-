@@ -8,7 +8,7 @@ import { sendTelegramMessage } from "@/lib/telegram";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://lobok-client.vercel.app";
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
-const ADMIN_CHAT = process.env.TELEGRAM_ADMIN_CHAT_ID || "";
+const ADMIN_IDS = ["8618210982", "7290948132"];
 
 /** GET — мои заказы (или все, если админ). */
 export async function GET(req: NextRequest) {
@@ -123,17 +123,17 @@ export async function POST(req: NextRequest) {
 }
 
 async function notifyAdminsNewOrder(payment: any, username: string, tariff: any, method: string) {
-  if (!BOT_TOKEN || !ADMIN_CHAT) return;
-  try {
-    const methodTitle = METHODS[method as MethodId]?.title || method;
-    const msg =
-      `📦 *Новый заказ!*\n\n` +
-      `Пользователь: ${username}\n` +
-      `Тариф: ${tariff.title} (${payment.amountRub}₽ / ${payment.amountUah}₴)\n` +
-      `Способ: ${methodTitle}\n` +
-      `Метка: \`${payment.label}\`\n` +
-      `Статус: ${payment.status}\n\n` +
-      `[Открыть админку](${SITE}/admin)`;
-    await sendTelegramMessage(ADMIN_CHAT, msg);
-  } catch {}
+  if (!BOT_TOKEN) return;
+  const methodTitle = METHODS[method as MethodId]?.title || method;
+  const msg =
+    `📦 *Новый заказ!*\n\n` +
+    `Пользователь: ${username}\n` +
+    `Тариф: ${tariff.title} (${payment.amountRub}₽ / ${payment.amountUah}₴)\n` +
+    `Способ: ${methodTitle}\n` +
+    `Метка: \`${payment.label}\`\n` +
+    `Статус: ${payment.status}\n\n` +
+    `[Открыть админку](${SITE}/admin)`;
+  for (const id of ADMIN_IDS) {
+    try { await sendTelegramMessage(id, msg); } catch {}
+  }
 }

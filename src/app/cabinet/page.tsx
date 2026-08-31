@@ -62,6 +62,7 @@ export default function Cabinet() {
   const [freeStep, setFreeStep] = useState<"idle"|"code_sent"|"verified">("idle");
   const [freeCode, setFreeCode] = useState("");
   const [freeBusy, setFreeBusy] = useState(false);
+  const [payStep, setPayStep] = useState(0);
 
   const loadKeys = useCallback(() => {
     fetch("/api/keys?mine=1").then((r) => r.json()).then((d) => setKeys(d.keys || []));
@@ -281,6 +282,7 @@ export default function Cabinet() {
       return flash(d.error, true);
     }
     setOrder(d);
+    setPayStep(2);
     loadPayments();
     if (d.instructions?.payUrl) window.open(d.instructions.payUrl, "_blank", "noopener");
   }
@@ -511,6 +513,23 @@ export default function Cabinet() {
               <IconCard size={18} /> Купить ключ
             </h3>
 
+            {/* Steps indicator */}
+            <div className="flex items-center gap-0 text-xs">
+              {["Тариф", "Оплата", "Готово"].map((s, i) => (
+                <div key={s} className="flex items-center">
+                  <div className={`flex items-center gap-1.5 ${i <= payStep ? "opacity-100" : "opacity-40"}`}>
+                    <div className={`w-6 h-6 rounded-full grid place-items-center text-[10px] font-bold shrink-0 ${
+                      i < payStep ? "bg-white/80 text-black" : i === payStep ? "bg-white/20 text-white/70" : "bg-white/5 text-white/40"
+                    }`}>
+                      {i < payStep ? <IconCheck size={12} /> : i + 1}
+                    </div>
+                    <span className={i === payStep ? "text-white/70" : "text-white/40"}>{s}</span>
+                  </div>
+                  {i < 2 && <div className={`w-8 h-0.5 mx-2 rounded ${i < payStep ? "bg-white/30" : "bg-white/5"}`} />}
+                </div>
+              ))}
+            </div>
+
             <div className="grid sm:grid-cols-3 gap-2">
               {TARIFFS.map((t) => (
                 <button
@@ -518,6 +537,7 @@ export default function Cabinet() {
                   onClick={() => {
                     setBuy({ ...buy, type: t.id });
                     setOrder(null);
+                    setPayStep(0);
                   }}
                   className={`p-3 rounded-xl border text-left transition ${
                     buy.type === t.id
@@ -551,6 +571,7 @@ export default function Cabinet() {
                   onClick={() => {
                     setBuy({ ...buy, method: m.id });
                     setOrder(null);
+                    setPayStep(1);
                   }}
                   className={`p-2.5 rounded-xl border text-left transition ${
                     buy.method === m.id
@@ -595,7 +616,7 @@ export default function Cabinet() {
                 </>
               ) : (
                 <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/15">
-                  <IconCheck size={16} />
+                  <span className="text-green-400"><IconCheck size={16} /></span>
                   <span className="text-sm">
                     <b className="font-mono">{promo.code}</b>
                     <span className="text-white/70 font-bold"> −{promo.discount}%</span>
@@ -632,7 +653,7 @@ export default function Cabinet() {
               <div className="rounded-xl bg-white/[0.04] border border-white/10 p-4 space-y-2 text-sm">
                 {order.done ? (
                   <div className="text-white/70 font-bold flex items-center gap-2">
-                    <IconCheck size={16} /> Оплачено! Ключ: {order.key?.key}
+                    <span className="text-green-400"><IconCheck size={16} /></span> Оплачено! Ключ: {order.key?.key}
                   </div>
                 ) : (
                   <>
@@ -658,7 +679,7 @@ export default function Cabinet() {
                     )}
                     {order.instructions?.promo && (
                       <div className="flex items-center gap-2 text-[11px] text-white/70 bg-white/3 border border-white/10 rounded-lg px-2.5 py-1.5">
-                        <IconCheck size={12} />
+                        <span className="text-green-400"><IconCheck size={12} /></span>
                         Промокод <b className="font-mono">{order.instructions.promo.code}</b> применён:
                         −{order.instructions.promo.discount}%
                       </div>
@@ -866,7 +887,7 @@ export default function Cabinet() {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 text-xs text-white/70 font-bold">
-                  <IconCheck size={14} /> Верификация пройдена
+                  <span className="text-green-400"><IconCheck size={14} /></span> Верификация пройдена
                 </div>
               )}
             </div>

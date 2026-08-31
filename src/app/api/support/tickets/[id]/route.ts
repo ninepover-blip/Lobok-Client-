@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
+import { sendTelegramMessage } from "@/lib/telegram";
+
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
+const ADMIN_IDS = ["8618210982", "7290948132"];
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://lobok-client.vercel.app";
 
 export async function GET(_:NextRequest, { params }:{ params:Promise<{id:string}>}){
   const { id } = await params;
@@ -28,6 +33,20 @@ export async function POST(req: NextRequest, { params }:{ params:Promise<{id:str
   if(!content?.trim()) return NextResponse.json({error:"Empty"},{status:400});
   const isPinned = me.role==="ADMIN"||me.role==="MODERATOR";
   const msg = await prisma.chatMessage.create({ data:{ channel:"SUPPORT", ticketId: id, userId: me.id, content: content.trim(), isPinned }});
+
+  if (BOT_TOKEN && me.role !== "ADMIN" && me.role !== "MODERATOR") {
+    const ticket = await prisma.supportTicket.findUnique({ where:{ id }, select:{ title:true }});
+    const notifyMsg =
+      `💬 *Новое сообщение в тикете*\n\n` +
+      `Тикет: ${ticket?.title || id}\n` +
+      `От: ${me.username}\n` +
+      `Сообщение: ${content.trim().slice(0, 300)}\n\n` +
+      `[Открыть](${SITE}/support)`;
+    for (const adminId of ADMIN_IDS) {
+      try { await sendTelegramMessage(adminId, notifyMsg); } catch {}
+    }
+  }
+
   return NextResponse.json({ ok:true, message:msg });
 }
 export async function PATCH(req: NextRequest, { params }:{ params:Promise<{id:string}>}){

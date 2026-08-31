@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { cancelPayment, issueKeyForPayment } from "@/lib/issueKey";
+import { sendTelegramMessage } from "@/lib/telegram";
+
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
+const ADMIN_IDS = ["8618210982", "7290948132"];
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://lobok-client.vercel.app";
 
 /** GET — статус одного заказа (для опроса из кабинета). */
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -49,6 +54,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (action === "paid") {
     if (!isOwner && !isAdmin) return NextResponse.json({ error: "Нет доступа" }, { status: 403 });
     // статус не меняем — заказ остаётся PENDING до подтверждения админом
+    if (BOT_TOKEN) {
+      const pay = await prisma.payment.findUnique({ where: { id }, include: { user: { select: { username: true } } } });
+      const msg =
+        `💳 *Пользователь оплатил!*\n\n` +
+        `Пользователь: ${pay?.user?.username || "—"}\n` +
+        `Метка: \`${payment.label}\`\n` +
+        `Сумма: ${payment.amountRub}₽ / ${payment.amountUah}₴\n` +
+        `Способ: ${payment.method}\n\n` +
+        `[Открыть админку](${SITE}/admin)`;
+      for (const adminId of ADMIN_IDS) {
+        try { await sendTelegramMessage(adminId, msg); } catch {}
+      }
+    }
     return NextResponse.json({
       ok: true,
       message: "Заявка отправлена. Админ проверит перевод и выдаст ключ.",
