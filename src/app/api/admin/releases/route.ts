@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put } from "@vercel/blob";
 import prisma from "@/lib/prisma";
 import { getAuthUserFromRequest } from "@/lib/auth";
 
+export const runtime = "nodejs";
+
 export async function GET() {
-  const releases = await prisma.release.findMany({ orderBy: { createdAt: "desc" } });
+  const releases = await prisma.release.findMany({
+    orderBy: { createdAt: "desc" },
+    select: { id: true, type: true, version: true, originalFilename: true, filePath: true, fileSize: true, mimeType: true, isLatest: true, isActive: true, createdAt: true },
+  });
   return NextResponse.json({ releases });
 }
 
@@ -12,10 +16,22 @@ export async function POST(req: NextRequest) {
   const me = await getAuthUserFromRequest(req);
   if (!me || me.role !== "ADMIN") return NextResponse.json({ error: "Admin only" }, { status: 403 });
 
-  const formData = await req.formData();
-  const version = formData.get("version") as string;
-  const type = formData.get("type") as string; // "mod" or "launcher"
-  const file = formData.get("file") as File;
+  let version = "";
+  let type = "";
+  let file: File | null = null;
+
+  const contentType = req.headers.get("content-type") || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await req.formData();
+    version = (formData.get("version") as string) || "";
+    type = (formData.get("type") as string) || "";
+    file = formData.get("file") as File;
+  } else if (contentType.includes("application/json")) {
+    return NextResponse.json({ error: "Use multipart/form-data for file upload" }, { status: 400 });
+  } else {
+    return NextRequest.json({ error: "Unsupported content type" }, { status: 400 });
+  }
 
   if (!version || !type || !file) {
     return NextResponse.json({ error: "version, type, and file are required" }, { status: 400 });
@@ -24,7 +40,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "type must be 'mod' or 'launcher'" }, { status: 400 });
   }
 
-  // Validate file extension
   const ext = file.name.split(".").pop()?.toLowerCase();
   if (type === "mod" && ext !== "jar") {
     return NextResponse.json({ error: "Mod file must be .jar" }, { status: 400 });
@@ -33,50 +48,47 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Launcher file must be .exe" }, { status: 400 });
   }
 
-  // Validate file size (max 200MB)
   if (file.size > 200 * 1024 * 1024) {
     return NextResponse.json({ error: "File too large (max 200MB)" }, { status: 400 });
   }
 
-  // Check if version already exists for this type
   const existing = await prisma.release.findUnique({ where: { type_version: { type, version } } });
   if (existing) {
     return NextResponse.json({ error: `Version ${version} already exists for ${type}` }, { status: 409 });
   }
 
-  // Store file in Vercel Blob
-  const folder = type === "mod" ? "mods" : "launchers";
-  const storedFilename = `${type}-${version.replace(/[^a-zA-Z0-9.-]/g, "_")}-${Date.now()}.${ext}`;
-  const path = `${folder}/${version}/${storedFilename}`;
-
-  let filePath: string;
-  try {
-    const blob = await put(path, file, {
-      access: "public",
-      contentType: file.type || (type === "mod" ? "application/java-archive" : "application/x-msdownload"),
-    });
-    filePath = blob.url;
-  } catch (err: any) {
-    return NextResponse.json({ error: `Upload failed: ${err.message}` }, { status: 500 });
-  }
+  // Read file bytes
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
 
   // Mark previous latest as not latest
   await prisma.release.updateMany({ where: { type, isLatest: true }, data: { isLatest: false } });
 
-  // Create release record
+  // Create release record with file data stored in DB
   const release = await prisma.release.create({
     data: {
       type,
       version,
       originalFilename: file.name,
-      storedFilename,
-      filePath,
+      filePath: `/api/releases/${type}/latest/download`,
+      fileData: buffer,
       fileSize: file.size,
-      mimeType: file.type || null,
+      mimeType: file.type || (type === "mod" ? "application/java-archive" : "application/x-msdownload"),
       isLatest: true,
       isActive: true,
     },
   });
 
-  return NextResponse.json({ ok: true, release });
+  return NextResponse.json({
+    ok: true,
+    release: {
+      id: release.id,
+      type: release.type,
+      version: release.version,
+      originalFilename: release.originalFilename,
+      fileSize: release.fileSize,
+      isLatest: release.isLatest,
+      createdAt: release.createdAt,
+    },
+  });
 }

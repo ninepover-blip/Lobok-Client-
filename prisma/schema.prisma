@@ -306,8 +306,8 @@ model Release {
   type             String   // "mod" or "launcher"
   version          String
   originalFilename String
-  storedFilename   String
-  filePath         String   // Vercel Blob URL or relative path
+  filePath         String   // download URL path like /api/releases/{id}/download
+  fileData         Bytes?   // raw file bytes stored in DB
   fileSize         Int      // bytes
   mimeType         String?
   isLatest         Boolean  @default(false)

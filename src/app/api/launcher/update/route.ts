@@ -15,7 +15,6 @@ export async function POST(req: NextRequest) {
       type,
       version,
       originalFilename: downloadUrl.split("/").pop() || "file",
-      storedFilename: downloadUrl.split("/").pop() || "file",
       filePath: downloadUrl,
       fileSize: 0,
       isLatest: true,

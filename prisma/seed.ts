@@ -19,31 +19,7 @@ async function main(){
   // demo releases
   const hasLauncher = await prisma.release.findFirst({ where:{ type:"launcher" }});
   if(!hasLauncher){
-    await prisma.release.create({
-      data:{
-        type:"launcher",
-        version:"1.0.0",
-        originalFilename:"LobokLauncher.exe",
-        storedFilename:"LobokLauncher.exe",
-        filePath:"",
-        fileSize:0,
-        isLatest:true,
-        isActive:true
-      }
-    });
-    await prisma.release.create({
-      data:{
-        type:"mod",
-        version:"1.0.0",
-        originalFilename:"Lobok-Client-1.16.5.jar",
-        storedFilename:"Lobok-Client-1.16.5.jar",
-        filePath:"",
-        fileSize:0,
-        isLatest:true,
-        isActive:true
-      }
-    });
-    console.log("Seeded releases");
+    console.log("No demo releases seeded (no file data)");
   }
   // example news
   const layf = await prisma.user.findUnique({ where:{ username:"LayF"}});

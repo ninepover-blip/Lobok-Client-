@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { del } from "@vercel/blob";
 import prisma from "@/lib/prisma";
 import { getAuthUserFromRequest } from "@/lib/auth";
 
@@ -10,13 +9,6 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
   const release = await prisma.release.findUnique({ where: { id } });
   if (!release) return NextResponse.json({ error: "Not found" }, { status: 404 });
-
-  // Delete blob file
-  try {
-    if (release.filePath && release.filePath.startsWith("http")) {
-      await del(release.filePath);
-    }
-  } catch {}
 
   // If this was the latest, promote the previous version
   if (release.isLatest) {
