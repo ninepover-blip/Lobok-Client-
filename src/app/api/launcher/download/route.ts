@@ -31,14 +31,14 @@ export async function GET(req: NextRequest) {
   <title>Скачивание — Lobok Client</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a14; color: #c8c8d7; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-    .card { background: rgba(22,22,40,0.8); border: 1px solid rgba(80,70,130,0.3); border-radius: 20px; padding: 48px; max-width: 480px; text-align: center; }
-    h1 { font-size: 24px; color: #8c78c8; margin-bottom: 12px; }
-    p { color: #6e6e87; margin-bottom: 20px; line-height: 1.6; }
-    .version { display: inline-block; background: rgba(140,120,200,0.15); border: 1px solid rgba(140,120,200,0.3); padding: 6px 16px; border-radius: 20px; font-size: 13px; color: #8c78c8; margin-bottom: 24px; }
-    a.btn { display: inline-block; padding: 14px 32px; background: #8c78c8; color: #fff; text-decoration: none; border-radius: 12px; font-weight: 600; transition: background 0.2s; }
-    a.btn:hover { background: #a090d8; }
-    .note { font-size: 12px; color: #4a4a60; margin-top: 16px; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0a0a0a; color: #c8c8d7; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+    .card { background: rgba(22,22,22,0.8); border: 1px solid rgba(80,80,80,0.3); border-radius: 20px; padding: 48px; max-width: 480px; text-align: center; }
+    h1 { font-size: 24px; color: #e0e0e0; margin-bottom: 12px; }
+    p { color: #6e6e6e; margin-bottom: 20px; line-height: 1.6; }
+    .version { display: inline-block; background: rgba(200,200,200,0.1); border: 1px solid rgba(200,200,200,0.2); padding: 6px 16px; border-radius: 20px; font-size: 13px; color: #aaa; margin-bottom: 24px; }
+    a.btn { display: inline-block; padding: 14px 32px; background: #e0e0e0; color: #0a0a0a; text-decoration: none; border-radius: 12px; font-weight: 600; transition: background 0.2s; }
+    a.btn:hover { background: #ffffff; }
+    .note { font-size: 12px; color: #4a4a4a; margin-top: 16px; }
   </style>
 </head>
 <body>

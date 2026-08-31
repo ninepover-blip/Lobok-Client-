@@ -78,7 +78,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             src={user.avatarUrl || "/lobok.jpg"}
             className={`w-24 h-24 rounded-2xl object-cover border-2 ${
               user.role === "ADMIN"
-                ? "border-transparent [background:linear-gradient(#0a0a14,#0a0a14)_padding-box,linear-gradient(135deg,#a78bfa,#3b82f6)_border-box]"
+                ? "border-white/40"
                 : user.role === "MODERATOR"
                   ? "border-blue-500/60"
                   : "border-white/10"

@@ -165,9 +165,9 @@ export default function BuyPage() {
         <div style={styles.stepsRow}>
           {STEPS.map((s, i) => (
             <div key={s} style={{ ...styles.stepItem, opacity: i <= step ? 1 : 0.4 }}>
-              <div style={{ ...styles.stepDot, background: i < step ? "#8b5cf6" : i === step ? "#a78bfa" : "#333" }}>{i < step ? "✓" : i + 1}</div>
+              <div style={{ ...styles.stepDot, background: i < step ? "#e0e0e0" : i === step ? "#cccccc" : "#333" }}>{i < step ? "✓" : i + 1}</div>
               <span style={styles.stepLabel}>{s}</span>
-              {i < STEPS.length - 1 && <div style={{ ...styles.stepLine, background: i < step ? "#8b5cf6" : "#333" }} />}
+              {i < STEPS.length - 1 && <div style={{ ...styles.stepLine, background: i < step ? "#e0e0e0" : "#333" }} />}
             </div>
           ))}
         </div>
@@ -184,7 +184,7 @@ export default function BuyPage() {
                   onClick={() => setTariff(t.id)}
                   style={{
                     ...styles.tariffCard,
-                    borderColor: tariff === t.id ? "#8b5cf6" : "#222",
+                    borderColor: tariff === t.id ? "#e0e0e0" : "#222",
                     background: tariff === t.id ? "rgba(139,92,246,0.1)" : "#1a1a22",
                   }}
                 >
@@ -225,7 +225,7 @@ export default function BuyPage() {
                   onClick={() => setMethod(m.id)}
                   style={{
                     ...styles.methodCard,
-                    borderColor: method === m.id ? "#8b5cf6" : "#222",
+                    borderColor: method === m.id ? "#e0e0e0" : "#222",
                     background: method === m.id ? "rgba(139,92,246,0.1)" : "#1a1a22",
                   }}
                 >
@@ -285,7 +285,7 @@ export default function BuyPage() {
               {order.instructions?.label && (
                 <div style={styles.receiptInfo}>
                   <div style={styles.receiptLabel}>Метка:</div>
-                  <div style={{ ...styles.receiptValue, color: "#8b5cf6", fontWeight: 700 }}>{order.instructions.label}</div>
+                  <div style={{ ...styles.receiptValue, color: "#e0e0e0", fontWeight: 700 }}>{order.instructions.label}</div>
                 </div>
               )}
               {order.instructions?.note && (
@@ -428,7 +428,7 @@ const styles: Record<string, React.CSSProperties> = {
     top: -10,
     left: "50%",
     transform: "translateX(-50%)",
-    background: "#8b5cf6",
+    background: "#e0e0e0",
     color: "#fff",
     fontSize: 10,
     fontWeight: 700,
@@ -445,7 +445,7 @@ const styles: Record<string, React.CSSProperties> = {
   tariffPrice: {
     fontSize: 20,
     fontWeight: 800,
-    color: "#a78bfa",
+    color: "#cccccc",
     marginBottom: 4,
   },
   tariffSub: {
@@ -480,8 +480,8 @@ const styles: Record<string, React.CSSProperties> = {
   },
   btnPrimary: {
     width: "100%",
-    background: "linear-gradient(135deg, #8b5cf6, #7c3aed)",
-    color: "#fff",
+    background: "#e0e0e0",
+    color: "#0a0a0a",
     border: "none",
     borderRadius: 10,
     padding: "12px 24px",
@@ -490,7 +490,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
   },
   btnSmall: {
-    background: "#8b5cf6",
+    background: "#e0e0e0",
     color: "#fff",
     border: "none",
     borderRadius: 8,
@@ -579,7 +579,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   payLink: {
     display: "inline-block",
-    background: "#8b5cf6",
+    background: "#e0e0e0",
     color: "#fff",
     textDecoration: "none",
     borderRadius: 8,
