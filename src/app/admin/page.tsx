@@ -25,7 +25,7 @@ function promoState(p: { isActive: boolean; expiresAt: string | null; maxUses: n
     return { label: "Исчерпан", cls: "bg-red-500/15 text-red-300" };
   if (p.maxUses !== null && p.uses >= p.maxUses * 0.8)
     return { label: "Заканчивается", cls: "bg-amber-500/15 text-amber-300" };
-  return { label: "Активен", cls: "bg-emerald-500/15 text-emerald-300" };
+  return { label: "Активен", cls: "bg-white/10 text-white/70" };
 }
 
 export default function AdminPage() {
@@ -283,7 +283,7 @@ export default function AdminPage() {
       {(msg || err) && (
         <div
           className={`p-3 rounded-xl text-sm ${
-            err ? "bg-red-500/15 text-red-200 border border-red-500/20" : "bg-emerald-500/15 text-emerald-200"
+            err ? "bg-red-500/15 text-red-200 border border-red-500/20" : "bg-white/10 text-white/60"
           }`}
         >
           {err || msg}
@@ -374,7 +374,7 @@ export default function AdminPage() {
                   </div>
                   <div className="flex flex-wrap gap-1">
                     <button onClick={() => keyAction(k.id, "revoke")} className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 text-xs">Revoke</button>
-                    <button onClick={() => keyAction(k.id, "unrevoke")} className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs">Unrevoke</button>
+                    <button onClick={() => keyAction(k.id, "unrevoke")} className="px-2.5 py-1 rounded-full bg-white/10 text-white/70 text-xs">Unrevoke</button>
                     <button onClick={() => keyAction(k.id, "regenerate")} className="px-2.5 py-1 rounded-full bg-white/10 text-xs">Regen</button>
                     <button
                       onClick={() => {
@@ -535,7 +535,7 @@ export default function AdminPage() {
                   <span
                     className={`text-xs px-2.5 py-1 rounded-full font-bold ${
                       p.status === "PAID"
-                        ? "bg-emerald-500 text-black"
+                        ? "bg-white/80 text-black"
                         : p.status === "CANCELLED"
                           ? "bg-red-500/20 text-red-300"
                           : "bg-amber-500/20 text-amber-300"
@@ -663,10 +663,10 @@ export default function AdminPage() {
                     <span key={x.t} className="px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10">
                       <span className="text-white/40">{x.t}: </span>
                       <span className="line-through text-white/30">{x.rub}₽</span>{" "}
-                      <span className="text-emerald-300 font-bold">{nr}₽</span>
+                      <span className="text-white/70 font-bold">{nr}₽</span>
                       <span className="text-white/20"> / </span>
                       <span className="line-through text-white/30">{x.uah}₴</span>{" "}
-                      <span className="text-emerald-300 font-bold">{nu}₴</span>
+                      <span className="text-white/70 font-bold">{nu}₴</span>
                     </span>
                   );
                 })}

@@ -59,7 +59,7 @@ export default async function Home() {
         <div className="relative grid lg:grid-cols-[1.2fr_0.8fr] gap-8 items-center">
           <div className="space-y-5">
             <div className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Скачиваний {downloads.toLocaleString("ru-RU")} • Активных ключей {activeKeys}
+              <span className="w-2 h-2 rounded-full bg-white/60 animate-pulse" /> Скачиваний {downloads.toLocaleString("ru-RU")} • Активных ключей {activeKeys}
             </div>
             <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[0.95]">
               Lobok Client<br /><span className="gradient-text">HvH доминация</span>
@@ -87,7 +87,7 @@ export default async function Home() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
                   <div className="text-xs px-2.5 py-1 rounded-full bg-black/60 border border-white/10 backdrop-blur">v2.4 • HvH Edition</div>
-                  <div className="text-xs px-2.5 py-1 rounded-full bg-emerald-500 text-black font-bold">✓ Undetected</div>
+                  <div className="text-xs px-2.5 py-1 rounded-full bg-white/80 text-black font-bold">✓ Undetected</div>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 mt-3 text-center text-xs">

@@ -80,7 +80,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
               user.role === "ADMIN"
                 ? "border-white/40"
                 : user.role === "MODERATOR"
-                  ? "border-blue-500/60"
+                  ? "border-white/30"
                   : "border-white/10"
             }`}
             alt=""
@@ -99,7 +99,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                 user.role === "ADMIN"
                   ? "text-red-500 font-black"
                   : user.role === "MODERATOR"
-                    ? "text-blue-400"
+                    ? "text-white/60"
                     : "text-zinc-300"
               }`}
             >
@@ -216,7 +216,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                 <span
                   className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${
                     k.status === "ACTIVE"
-                      ? "bg-emerald-500 text-black"
+                      ? "bg-white/80 text-black"
                       : k.status === "REVOKED"
                         ? "bg-red-500 text-white"
                         : "bg-white/10 text-white/60"

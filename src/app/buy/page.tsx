@@ -458,7 +458,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 12,
   },
   promoOk: {
-    color: "#4ade80",
+    color: "#cccccc",
     fontSize: 13,
     marginBottom: 12,
   },
@@ -532,7 +532,7 @@ const styles: Record<string, React.CSSProperties> = {
   autoTag: {
     marginLeft: "auto",
     background: "rgba(74,222,128,0.15)",
-    color: "#4ade80",
+    color: "#cccccc",
     fontSize: 10,
     fontWeight: 700,
     padding: "2px 8px",
@@ -620,7 +620,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: 64,
     borderRadius: "50%",
     background: "rgba(74,222,128,0.15)",
-    color: "#4ade80",
+    color: "#cccccc",
     fontSize: 32,
     display: "flex",
     alignItems: "center",

@@ -183,7 +183,7 @@ export function VerifiedBadge({
             <>
               <stop offset="0%" stopColor="#a78bfa" />
               <stop offset="55%" stopColor="#7c5cff" />
-              <stop offset="100%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#888888" />
             </>
           ) : (
             <>
@@ -226,7 +226,7 @@ export function RoleName({
     role === "ADMIN"
       ? "text-red-400 font-bold"
       : role === "MODERATOR"
-        ? "text-blue-400 font-bold"
+        ? "text-white/60 font-bold"
         : "text-zinc-300";
   return (
     <span className={`inline-flex items-center gap-1 ${cls} ${className}`}>
@@ -246,7 +246,7 @@ export function RoleBadge({ role }: { role: string }) {
     );
   if (role === "MODERATOR")
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white bg-blue-600">
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white bg-white/80">
         <VerifiedBadge role="MODERATOR" size={13} /> MODERATOR
       </span>
     );

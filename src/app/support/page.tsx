@@ -8,7 +8,7 @@ const STATUS_LABEL: Record<string, string> = {
   CLOSED: "Закрыт",
 };
 const STATUS_CLASS: Record<string, string> = {
-  OPEN: "bg-emerald-500/20 text-emerald-300",
+  OPEN: "bg-white/10 text-white/70",
   PENDING: "bg-amber-500/20 text-amber-300",
   CLOSED: "bg-white/10 text-white/50",
 };
@@ -215,7 +215,7 @@ export default function SupportPage() {
                 {canReopen && (
                   <button
                     onClick={() => setStatus("OPEN")}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold"
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/10 text-white/70 text-xs font-bold"
                   >
                     <IconCheck size={14} /> Переоткрыть
                   </button>

@@ -57,11 +57,11 @@ function Danger({ children }: { children: React.ReactNode }) {
 
 function Ok({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] p-3.5 flex gap-2.5">
-      <span className="text-emerald-300 shrink-0 mt-0.5">
+    <div className="rounded-xl border border-white/15 bg-white/[0.04] p-3.5 flex gap-2.5">
+      <span className="text-white/70 shrink-0 mt-0.5">
         <IconCheck size={16} />
       </span>
-      <div className="text-sm text-emerald-100/90 space-y-2">{children}</div>
+      <div className="text-sm text-white/70 space-y-2">{children}</div>
     </div>
   );
 }
@@ -282,7 +282,7 @@ export default function LegalPage() {
               "Ключ куплен, но ещё не активирован — возврат в течение 24 часов с момента покупки.",
             ].map((t) => (
               <li key={t} className="flex gap-2">
-                <span className="text-emerald-400 shrink-0">✓</span>
+                <span className="text-white/70 shrink-0">✓</span>
                 <span>{t}</span>
               </li>
             ))}

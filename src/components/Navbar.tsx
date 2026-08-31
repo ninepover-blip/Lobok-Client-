@@ -166,7 +166,7 @@ export default function Navbar() {
                   rel="noopener"
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors"
                 >
-                  <span className="text-indigo-300 shrink-0">
+                  <span className="text-white/60 shrink-0">
                     <IconDiscord size={15} />
                   </span>
                   <span className="text-sm text-white/90 font-medium">Discord</span>
@@ -199,7 +199,7 @@ export default function Navbar() {
                     me.role === "ADMIN"
                       ? "text-red-400 font-bold"
                       : me.role === "MODERATOR"
-                        ? "text-blue-400 font-bold"
+                        ? "text-white/60 font-bold"
                         : "text-zinc-300"
                   }`}
                 >
@@ -311,7 +311,7 @@ export default function Navbar() {
             rel="noopener"
             className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5"
           >
-            <span className="text-indigo-300"><IconDiscord size={15} /></span>
+            <span className="text-white/60"><IconDiscord size={15} /></span>
             Discord
             <span className="ml-auto text-[10px] text-white/30">↗</span>
           </a>

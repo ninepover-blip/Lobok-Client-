@@ -173,7 +173,7 @@ export default function ForgotPage() {
 
         {step === 3 && (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold">
+            <div className="flex items-center gap-2 text-white/70 font-bold">
               <IconCheck size={18} /> Пароль изменён
             </div>
             <Link

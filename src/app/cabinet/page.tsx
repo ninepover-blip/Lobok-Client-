@@ -367,7 +367,7 @@ export default function Cabinet() {
                     me.role === "ADMIN"
                       ? "text-red-400"
                       : me.role === "MODERATOR"
-                        ? "text-blue-400"
+                        ? "text-white/60"
                         : "text-zinc-300"
                   }`}
                 >
@@ -432,7 +432,7 @@ export default function Cabinet() {
               </div>
               <span
                 className={`text-[11px] px-2 py-1 rounded-full font-bold ${
-                  me.is2FAEnabled ? "bg-emerald-500 text-black" : "bg-white/10 text-white/50"
+                  me.is2FAEnabled ? "bg-white/80 text-black" : "bg-white/10 text-white/50"
                 }`}
               >
                 {me.is2FAEnabled ? "ВКЛЮЧЕНА" : "ВЫКЛЮЧЕНА"}
@@ -452,7 +452,7 @@ export default function Cabinet() {
                 <li key={i} className="flex items-center gap-2">
                   <span
                     className={`w-5 h-5 rounded-full grid place-items-center text-[10px] font-bold shrink-0 ${
-                      s.done ? "bg-emerald-500 text-black" : "bg-white/10 text-white/50"
+                      s.done ? "bg-white/80 text-black" : "bg-white/10 text-white/50"
                     }`}
                   >
                     {s.done ? <IconCheck size={12} /> : i + 1}
@@ -531,7 +531,7 @@ export default function Cabinet() {
                       <span className="line-through text-white/30">
                         {t.rub}₽ / {t.uah}₴
                       </span>{" "}
-                      <span className="text-emerald-300 font-bold">
+                      <span className="text-white/70 font-bold">
                         {off(t.rub)}₽ / {off(t.uah)}₴
                       </span>
                     </div>
@@ -594,11 +594,11 @@ export default function Cabinet() {
                   {promoErr && <p className="text-xs text-red-300 px-1">{promoErr}</p>}
                 </>
               ) : (
-                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
+                <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/15">
                   <IconCheck size={16} />
                   <span className="text-sm">
                     <b className="font-mono">{promo.code}</b>
-                    <span className="text-emerald-300 font-bold"> −{promo.discount}%</span>
+                    <span className="text-white/70 font-bold"> −{promo.discount}%</span>
                     <span className="text-white/50">
                       {" "}
                       · экономия {tariff.rub - payRub}₽ / {tariff.uah - payUah}₴
@@ -631,7 +631,7 @@ export default function Cabinet() {
             {order && (
               <div className="rounded-xl bg-white/[0.04] border border-white/10 p-4 space-y-2 text-sm">
                 {order.done ? (
-                  <div className="text-emerald-400 font-bold flex items-center gap-2">
+                  <div className="text-white/70 font-bold flex items-center gap-2">
                     <IconCheck size={16} /> Оплачено! Ключ: {order.key?.key}
                   </div>
                 ) : (
@@ -640,7 +640,7 @@ export default function Cabinet() {
                       <IconClock size={14} /> Ожидаем оплату…
                     </div>
                     {(order.instructions?.payUrl || order.instructions?.auto) && (
-                      <div className="text-[11px] text-emerald-300/80 bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-2">
+                      <div className="text-[11px] text-white/60 bg-white/3 border border-white/10 rounded-lg p-2">
                         Оплата подтвердится автоматически — ключ появится здесь сам, обычно за
                         несколько секунд. Главное — не потеряй метку платежа.
                       </div>
@@ -657,7 +657,7 @@ export default function Cabinet() {
                       </>
                     )}
                     {order.instructions?.promo && (
-                      <div className="flex items-center gap-2 text-[11px] text-emerald-300 bg-emerald-500/5 border border-emerald-500/20 rounded-lg px-2.5 py-1.5">
+                      <div className="flex items-center gap-2 text-[11px] text-white/70 bg-white/3 border border-white/10 rounded-lg px-2.5 py-1.5">
                         <IconCheck size={12} />
                         Промокод <b className="font-mono">{order.instructions.promo.code}</b> применён:
                         −{order.instructions.promo.discount}%
@@ -711,7 +711,7 @@ export default function Cabinet() {
                         <span
                           className={`font-bold ${
                             p.status === "PAID"
-                              ? "text-emerald-400"
+                              ? "text-white/70"
                               : p.status === "CANCELLED"
                                 ? "text-red-400"
                                 : "text-amber-400"
@@ -772,7 +772,7 @@ export default function Cabinet() {
                   <div
                     className={`text-xs px-2.5 py-1 rounded-full font-bold shrink-0 ${
                       k.status === "ACTIVE"
-                        ? "bg-emerald-500 text-black"
+                        ? "bg-white/80 text-black"
                         : k.status === "REVOKED"
                           ? "bg-red-500 text-white"
                           : "bg-white/10"
@@ -796,7 +796,7 @@ export default function Cabinet() {
                   Сегодня уже забрали: <b>{free.by}</b> • Следующий в 00:00 МСК
                 </span>
               ) : (
-                <span className="text-emerald-400">Свободен — успей забрать!</span>
+                <span className="text-white/70">Свободен — успей забрать!</span>
               )}
             </div>
 
@@ -865,7 +865,7 @@ export default function Cabinet() {
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-xs text-emerald-400 font-bold">
+                <div className="flex items-center gap-2 text-xs text-white/70 font-bold">
                   <IconCheck size={14} /> Верификация пройдена
                 </div>
               )}
