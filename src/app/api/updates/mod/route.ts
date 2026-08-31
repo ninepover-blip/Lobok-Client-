@@ -1,0 +1,21 @@
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+
+export async function GET() {
+  const latest = await prisma.release.findFirst({
+    where: { type: "mod", isLatest: true, isActive: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!latest) {
+    return NextResponse.json({ error: "No mod version available" }, { status: 404 });
+  }
+
+  return NextResponse.json({
+    latest_version: latest.version,
+    download_url: latest.filePath,
+    file_name: latest.originalFilename,
+    file_size: latest.fileSize,
+    published_at: latest.createdAt,
+  });
+}

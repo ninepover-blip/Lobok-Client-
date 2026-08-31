@@ -301,16 +301,21 @@ model FreeKeyClaim {
   @@index([claimedAt])
 }
 
-model LauncherVersion {
-  id          String   @id @default(cuid())
-  version     String   @unique // e.g. 1.0.3
-  changelog   String?  @db.Text
-  downloadUrl String
-  isLatest    Boolean  @default(false)
-  forClient   Boolean  @default(false) // false=launcher, true=client inside launcher
-  createdAt   DateTime @default(now())
-  fileSize    String?
-  checksum    String?
+model Release {
+  id               String   @id @default(cuid())
+  type             String   // "mod" or "launcher"
+  version          String
+  originalFilename String
+  storedFilename   String
+  filePath         String   // Vercel Blob URL or relative path
+  fileSize         Int      // bytes
+  mimeType         String?
+  isLatest         Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  @@unique([type, version])
+  @@index([type, isLatest])
 }
 
 model Setting {

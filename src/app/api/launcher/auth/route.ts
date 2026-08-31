@@ -81,8 +81,8 @@ async function validateKeyAndIssueToken(
   });
 
   // Get latest client version info
-  const clientVersion = await prisma.launcherVersion.findFirst({
-    where: { forClient: true, isLatest: true },
+  const clientVersion = await prisma.release.findFirst({
+    where: { type: "mod", isLatest: true, isActive: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -92,7 +92,7 @@ async function validateKeyAndIssueToken(
     username: user.username,
     expiresAt: expiresAt.toISOString(),
     clientVersion: clientVersion?.version || null,
-    clientUrl: clientVersion?.downloadUrl || null,
+    clientUrl: clientVersion?.filePath || null,
   });
 }
 

@@ -4,24 +4,22 @@ import prisma from "@/lib/prisma";
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const forClient = url.searchParams.get("client") === "1";
+  const type = forClient ? "mod" : "launcher";
 
-  // log download
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  await prisma.downloadStat.create({ data: { ip, version: forClient ? "client" : "launcher" } }).catch(() => {});
+  await prisma.downloadStat.create({ data: { ip, version: type } }).catch(() => {});
 
-  // find latest version
-  const ver = await prisma.launcherVersion.findFirst({
-    where: { forClient, isLatest: true },
+  const ver = await prisma.release.findFirst({
+    where: { type, isLatest: true, isActive: true },
     orderBy: { createdAt: "desc" },
   });
 
-  const downloadUrl = ver?.downloadUrl;
+  const downloadUrl = ver?.filePath;
 
   if (downloadUrl && downloadUrl.startsWith("http")) {
     return NextResponse.redirect(downloadUrl);
   }
 
-  // No download URL set — show a helpful page instead of broken redirect
   return new NextResponse(
     `<!DOCTYPE html>
 <html lang="ru">
@@ -46,7 +44,7 @@ export async function GET(req: NextRequest) {
     <h1>Lobok Client</h1>
     <div class="version">Версия: ${ver?.version || "1.0.0"}</div>
     <p>${forClient ? "Клиент для Minecraft 1.16.5" : "Лаунчер Lobok Client"}<br>
-    ${ver?.changelog || "Автообновление, привязка ключа к аккаунту."}</p>
+    ${"Автообновление, привязка ключа к аккаунту."}</p>
     <a href="/" class="btn">Вернуться на сайт</a>
     <div class="note">Если скачивание не началось — обратитесь в поддержку</div>
   </div>

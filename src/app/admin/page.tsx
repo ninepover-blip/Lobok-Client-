@@ -40,6 +40,13 @@ export default function AdminPage() {
   const [gen, setGen] = useState({ type: "D30", username: "", count: 1 });
   const [ver, setVer] = useState({ version: "", changelog: "", downloadUrl: "", forClient: false });
   const [site, setSite] = useState<Record<string, string>>({ guideVideoUrl: "" });
+  const [releases, setReleases] = useState<any[]>([]);
+  const [modVersion, setModVersion] = useState("");
+  const [modFile, setModFile] = useState<File | null>(null);
+  const [launcherVersion, setLauncherVersion] = useState("");
+  const [launcherFile, setLauncherFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState<"mod" | "launcher" | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [newsForm, setNewsForm] = useState({ title: "", content: "", media: "" });
   const [promos, setPromos] = useState<any[]>([]);
   const [promoForm, setPromoForm] = useState({
@@ -59,19 +66,21 @@ export default function AdminPage() {
   }
 
   const reload = useCallback(async () => {
-    const [k, u, p, n, s, pr] = await Promise.all([
+    const [k, u, p, n, s, pr, rel] = await Promise.all([
       fetch("/api/keys").then((r) => r.json()).catch(() => ({})),
       fetch("/api/admin/users").then((r) => r.json()).catch(() => ({})),
       fetch("/api/payments?all=1").then((r) => r.json()).catch(() => ({})),
       fetch("/api/news").then((r) => r.json()).catch(() => ({})),
       fetch("/api/settings").then((r) => r.json()).catch(() => ({})),
       fetch("/api/admin/promo").then((r) => r.json()).catch(() => ({})),
+      fetch("/api/admin/releases").then((r) => r.json()).catch(() => ({})),
     ]);
     setKeys(k.keys || []);
     setUsers(u.users || []);
     setPayments(p.payments || []);
     setNews(n.news || []);
     setPromos(pr.promos || []);
+    setReleases(rel.releases || []);
     if (s.settings) setSite((prev) => ({ ...prev, ...s.settings }));
   }, []);
 
@@ -212,6 +221,54 @@ export default function AdminPage() {
     const d = await r.json();
     if (!r.ok) flash(d.error || "Ошибка", true);
     else flash("Версия сохранена");
+  }
+
+  async function uploadRelease(type: "mod" | "launcher") {
+    const version = type === "mod" ? modVersion : launcherVersion;
+    const file = type === "mod" ? modFile : launcherFile;
+    if (!version.trim()) return flash("Укажите версию", true);
+    if (!file) return flash("Выберите файл", true);
+
+    setUploading(type);
+    setUploadProgress(0);
+    try {
+      const fd = new FormData();
+      fd.append("version", version.trim());
+      fd.append("type", type);
+      fd.append("file", file);
+
+      const xhr = new XMLHttpRequest();
+      const result = await new Promise<any>((resolve, reject) => {
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        xhr.onload = () => {
+          try { resolve(JSON.parse(xhr.responseText)); }
+          catch { reject(new Error("Invalid response")); }
+        };
+        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.open("POST", "/api/admin/releases");
+        xhr.send(fd);
+      });
+
+      if (!result.ok) return flash(result.error || "Ошибка загрузки", true);
+      flash(`${type === "mod" ? "Мод" : "Лаунчер"} версии ${version} опубликован`);
+      if (type === "mod") { setModVersion(""); setModFile(null); }
+      else { setLauncherVersion(""); setLauncherFile(null); }
+      reload();
+    } catch (e: any) {
+      flash(e?.message || "Ошибка загрузки", true);
+    } finally {
+      setUploading(null);
+      setUploadProgress(0);
+    }
+  }
+
+  async function deleteRelease(id: string) {
+    if (!confirm("Удалить версию?")) return;
+    const r = await fetch(`/api/admin/releases/${id}`, { method: "DELETE" });
+    if (r.ok) { flash("Версия удалена"); reload(); }
+    else flash((await r.json()).error || "Ошибка", true);
   }
 
   async function saveSite() {
@@ -797,54 +854,133 @@ export default function AdminPage() {
 
       {/* САЙТ */}
       {tab === "site" && (
-        <div className="grid lg:grid-cols-2 gap-4">
-          <div className="rounded-[22px] glass p-5 space-y-3">
-            <h3 className="font-bold flex items-center gap-2"><IconPlay size={18} /> Видеоинструкция</h3>
-            <p className="text-xs text-white/40">
-              Ссылка на YouTube — ролик появится на главной в блоке «Видеоинструкция».
-            </p>
-            <input
-              value={site.guideVideoUrl || ""}
-              onChange={(e) => setSite({ ...site, guideVideoUrl: e.target.value })}
-              placeholder="https://youtu.be/..."
-              className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm"
-            />
-            <button onClick={saveSite} className="w-full py-2.5 rounded-full btn-primary text-white font-bold">
-              Сохранить
-            </button>
+        <div className="space-y-4">
+          <div className="grid lg:grid-cols-2 gap-4">
+            {/* Публикация мода */}
+            <div className="rounded-[22px] glass p-5 space-y-3">
+              <h3 className="font-bold text-lg">Публикация мода</h3>
+              <p className="text-xs text-white/40">Загрузите .jar файл клиента для Minecraft 1.16.5</p>
+              <input
+                value={modVersion}
+                onChange={(e) => setModVersion(e.target.value)}
+                placeholder="Версия напр. 1.2.5"
+                disabled={uploading === "mod"}
+                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm"
+              />
+              <label className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm cursor-pointer hover:bg-white/10 transition">
+                <span className="text-white/60">Обзор...</span>
+                <span className="text-white/40 truncate">{modFile ? modFile.name : "Файл не выбран."}</span>
+                <input
+                  type="file"
+                  accept=".jar"
+                  className="hidden"
+                  disabled={uploading === "mod"}
+                  onChange={(e) => setModFile(e.target.files?.[0] || null)}
+                />
+              </label>
+              {uploading === "mod" && (
+                <div className="w-full bg-white/10 rounded-full h-2">
+                  <div className="bg-white/70 h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
+                </div>
+              )}
+              <button
+                onClick={() => uploadRelease("mod")}
+                disabled={uploading === "mod"}
+                className="w-full py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold transition disabled:opacity-50"
+              >
+                {uploading === "mod" ? `Загрузка... ${uploadProgress}%` : "Загрузить мод"}
+              </button>
+            </div>
+
+            {/* Публикация лаунчера */}
+            <div className="rounded-[22px] glass p-5 space-y-3">
+              <h3 className="font-bold text-lg">Публикация лаунчера</h3>
+              <p className="text-xs text-white/40">Загрузите .exe файл лаунчера Lobok Client</p>
+              <input
+                value={launcherVersion}
+                onChange={(e) => setLauncherVersion(e.target.value)}
+                placeholder="Версия напр. 2.4.1"
+                disabled={uploading === "launcher"}
+                className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm"
+              />
+              <label className="flex items-center gap-2 w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm cursor-pointer hover:bg-white/10 transition">
+                <span className="text-white/60">Обзор...</span>
+                <span className="text-white/40 truncate">{launcherFile ? launcherFile.name : "Файл не выбран."}</span>
+                <input
+                  type="file"
+                  accept=".exe"
+                  className="hidden"
+                  disabled={uploading === "launcher"}
+                  onChange={(e) => setLauncherFile(e.target.files?.[0] || null)}
+                />
+              </label>
+              {uploading === "launcher" && (
+                <div className="w-full bg-white/10 rounded-full h-2">
+                  <div className="bg-white/70 h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
+                </div>
+              )}
+              <button
+                onClick={() => uploadRelease("launcher")}
+                disabled={uploading === "launcher"}
+                className="w-full py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold transition disabled:opacity-50"
+              >
+                {uploading === "launcher" ? `Загрузка... ${uploadProgress}%` : "Загрузить лаунчер"}
+              </button>
+            </div>
           </div>
 
+          {/* Список опубликованных версий */}
           <div className="rounded-[22px] glass p-5 space-y-3">
-            <h3 className="font-bold">Лаунчер / Клиент</h3>
-            <input
-              value={ver.version}
-              onChange={(e) => setVer({ ...ver, version: e.target.value })}
-              placeholder="Версия напр. 1.0.3"
-              className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm"
-            />
-            <input
-              value={ver.downloadUrl}
-              onChange={(e) => setVer({ ...ver, downloadUrl: e.target.value })}
-              placeholder="Ссылка скачивания"
-              className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm"
-            />
-            <input
-              value={ver.changelog}
-              onChange={(e) => setVer({ ...ver, changelog: e.target.value })}
-              placeholder="Changelog"
-              className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-sm"
-            />
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={ver.forClient}
-                onChange={(e) => setVer({ ...ver, forClient: e.target.checked })}
-              />{" "}
-              Это клиент (внутри лаунчера)
-            </label>
-            <button onClick={pushVersion} className="w-full py-2.5 rounded-full btn-ghost font-bold">
-              Сохранить версию
-            </button>
+            <h3 className="font-bold text-lg">Опубликованные версии</h3>
+            {releases.length === 0 ? (
+              <p className="text-sm text-white/40">Пока нет опубликованных версий</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-white/40 text-left border-b border-white/10">
+                      <th className="pb-2">Тип</th>
+                      <th className="pb-2">Версия</th>
+                      <th className="pb-2">Файл</th>
+                      <th className="pb-2">Размер</th>
+                      <th className="pb-2">Дата</th>
+                      <th className="pb-2">Статус</th>
+                      <th className="pb-2"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {releases.map((r: any) => (
+                      <tr key={r.id} className="border-b border-white/5 hover:bg-white/5">
+                        <td className="py-2 pr-4">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${r.type === "mod" ? "bg-white/10" : "bg-white/5"}`}>
+                            {r.type === "mod" ? "Мод" : "Лаунчер"}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4 font-mono">{r.version}</td>
+                        <td className="py-2 pr-4 text-white/50 truncate max-w-[200px]">{r.originalFilename}</td>
+                        <td className="py-2 pr-4 text-white/50">{r.fileSize ? `${(r.fileSize / 1024 / 1024).toFixed(1)} MB` : "—"}</td>
+                        <td className="py-2 pr-4 text-white/50">{new Date(r.createdAt).toLocaleDateString("ru-RU")}</td>
+                        <td className="py-2 pr-4">
+                          {r.isLatest ? (
+                            <span className="text-green-400 text-xs font-medium">Актуальная</span>
+                          ) : (
+                            <span className="text-white/30 text-xs">Старая</span>
+                          )}
+                        </td>
+                        <td className="py-2">
+                          <button
+                            onClick={() => deleteRelease(r.id)}
+                            className="text-red-400/70 hover:text-red-400 text-xs transition"
+                          >
+                            Удалить
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
       )}
