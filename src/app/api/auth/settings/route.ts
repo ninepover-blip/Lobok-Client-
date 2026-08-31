@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getCurrentUser, hashPassword, verifyPassword, signToken } from "@/lib/auth";
+import { getAuthUserFromRequest, hashPassword, verifyPassword, signToken } from "@/lib/auth";
 
 export async function PUT(req: NextRequest){
-  const me = await getCurrentUser();
+  const me = await getAuthUserFromRequest(req);
   if(!me) return NextResponse.json({error:"Не авторизован"},{status:401});
   const body = await req.json();
   const { newUsername, oldPassword, newPassword, avatarUrl, telegramId, is2FAEnabled } = body;

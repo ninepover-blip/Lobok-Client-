@@ -44,6 +44,19 @@ export async function getCurrentUser() {
   return user;
 }
 
+export async function getAuthUserFromRequest(req: { headers: Headers }) {
+  let user = await getCurrentUser();
+  if (!user) {
+    const auth = req.headers.get("authorization") || "";
+    const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+    if (bearer) {
+      const payload = verifyToken(bearer);
+      if (payload) user = await prisma.user.findUnique({ where: { id: payload.id } });
+    }
+  }
+  return user;
+}
+
 export async function requireAdmin() {
   const user = await getCurrentUser();
   if (!user || user.role !== "ADMIN") return null;
