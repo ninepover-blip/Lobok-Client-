@@ -143,7 +143,7 @@ export default function Navbar() {
             </button>
 
             {more && (
-              <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-white/10 bg-[#0d0d1a] shadow-2xl shadow-black/60 p-1.5 animate-in">
+              <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-white/10 bg-[#111111] shadow-2xl shadow-black/60 p-1.5 animate-in">
                 {MORE.map((it) => (
                   <Link
                     key={it.href}
@@ -197,7 +197,7 @@ export default function Navbar() {
                 <span
                   className={`hidden sm:block text-sm font-medium ${
                     me.role === "ADMIN"
-                      ? "text-red-400 font-bold"
+                      ? "text-white/60 font-bold"
                       : me.role === "MODERATOR"
                         ? "text-white/60 font-bold"
                         : "text-zinc-300"
@@ -218,7 +218,7 @@ export default function Navbar() {
               </button>
 
               {profile && (
-                <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-white/10 bg-[#0d0d1a] shadow-2xl shadow-black/60 p-1.5 animate-in">
+                <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-white/10 bg-[#111111] shadow-2xl shadow-black/60 p-1.5 animate-in">
                   <div className="px-3 py-2 border-b border-white/5 mb-1">
                     <div className="text-sm font-bold text-white/90 truncate">{me.username}</div>
                     <div className="text-[11px] text-white/40">
@@ -236,7 +236,7 @@ export default function Navbar() {
                   </Link>
                   {isStaff && (
                     <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors">
-                      <span className="text-red-400 shrink-0"><IconLock size={15} /></span>
+                      <span className="text-white/60 shrink-0"><IconLock size={15} /></span>
                       <span className="text-sm text-white/90">
                         {me.role === "ADMIN" ? "Админ-панель" : "Модерация"}
                       </span>
@@ -245,10 +245,10 @@ export default function Navbar() {
                   <div className="my-1 border-t border-white/5" />
                   <button
                     onClick={logout}
-                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-red-500/10 text-left transition-colors"
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-left transition-colors"
                   >
-                    <span className="text-red-400 shrink-0">⏻</span>
-                    <span className="text-sm text-red-300">Выйти</span>
+                    <span className="text-white/60 shrink-0">⏻</span>
+                    <span className="text-sm text-white/60">Выйти</span>
                   </button>
                 </div>
               )}
@@ -276,7 +276,7 @@ export default function Navbar() {
 
       {/* мобильное меню */}
       {mobile && (
-        <div className="md:hidden border-t border-white/5 bg-[#0a0a14] p-3 grid gap-0.5 text-sm">
+        <div className="md:hidden border-t border-white/5 bg-[#111111] p-3 grid gap-0.5 text-sm">
           {MAIN.map((it) => (
             <Link
               key={it.href}
@@ -329,13 +329,13 @@ export default function Navbar() {
               </Link>
               {isStaff && (
                 <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/10 text-white">
-                  <span className="text-red-400"><IconLock size={15} /></span>
+                  <span className="text-white/60"><IconLock size={15} /></span>
                   {me.role === "ADMIN" ? "Админ-панель" : "Модерация"}
                 </Link>
               )}
               <button
                 onClick={logout}
-                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-red-500/10 text-left text-red-300"
+                className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 text-left text-white/60"
               >
                 <span>⏻</span> Выйти
               </button>

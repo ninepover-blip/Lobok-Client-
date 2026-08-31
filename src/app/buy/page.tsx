@@ -185,7 +185,7 @@ export default function BuyPage() {
                   style={{
                     ...styles.tariffCard,
                     borderColor: tariff === t.id ? "#e0e0e0" : "#222",
-                    background: tariff === t.id ? "rgba(139,92,246,0.1)" : "#1a1a22",
+                    background: tariff === t.id ? "rgba(255,255,255,0.05)" : "#1a1a22",
                   }}
                 >
                   {t.badge && <div style={styles.badge}>{t.badge}</div>}
@@ -226,7 +226,7 @@ export default function BuyPage() {
                   style={{
                     ...styles.methodCard,
                     borderColor: method === m.id ? "#e0e0e0" : "#222",
-                    background: method === m.id ? "rgba(139,92,246,0.1)" : "#1a1a22",
+                    background: method === m.id ? "rgba(255,255,255,0.05)" : "#1a1a22",
                   }}
                 >
                   <span style={styles.methodIcon}>{m.icon}</span>
@@ -294,7 +294,7 @@ export default function BuyPage() {
             </div>
 
             <div style={styles.receiptSection}>
-              <h3 style={styles.sectionTitle}>Загрузить чек <span style={{color: '#ef4444'}}>*</span></h3>
+              <h3 style={styles.sectionTitle}>Загрузить чек <span style={{color: '#ffffff'}}>*</span></h3>
               <div style={styles.uploadArea} onClick={() => fileRef.current?.click()}>
                 {receiptPreview ? (
                   <img src={receiptPreview} alt="Чек" style={styles.receiptImg} />
@@ -400,12 +400,12 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 1,
   },
   error: {
-    background: "rgba(239,68,68,0.1)",
-    border: "1px solid #ef4444",
+    background: "rgba(255,255,255,0.05)",
+    border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: 8,
     padding: "10px 16px",
     marginBottom: 16,
-    color: "#ef4444",
+    color: "#ffffff",
     fontSize: 13,
   },
   tariffGrid: {
@@ -463,7 +463,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: 12,
   },
   promoErr: {
-    color: "#ef4444",
+    color: "#ffffff",
     fontSize: 13,
     marginBottom: 12,
   },
@@ -531,7 +531,7 @@ const styles: Record<string, React.CSSProperties> = {
   methodIcon: { fontSize: 20 },
   autoTag: {
     marginLeft: "auto",
-    background: "rgba(74,222,128,0.15)",
+    background: "rgba(255,255,255,0.05)",
     color: "#cccccc",
     fontSize: 10,
     fontWeight: 700,
@@ -619,7 +619,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: 64,
     height: 64,
     borderRadius: "50%",
-    background: "rgba(74,222,128,0.15)",
+    background: "rgba(255,255,255,0.05)",
     color: "#cccccc",
     fontSize: 32,
     display: "flex",

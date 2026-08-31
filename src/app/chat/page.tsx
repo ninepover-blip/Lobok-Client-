@@ -44,9 +44,9 @@ export default function ChatPage(){
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 text-xs">
                 <RoleName username={m.user.username} role={m.user.role} size={13} />
-                {m.isPinned && <span className="px-1.5 py-0.5 rounded bg-amber-500 text-black text-[10px] font-bold">ЗАКРЕП</span>}
+                {m.isPinned && <span className="px-1.5 py-0.5 rounded bg-white/80 text-black text-[10px] font-bold">ЗАКРЕП</span>}
                 <span className="text-white/30 ml-auto">{new Date(m.createdAt).toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}</span>
-                {isMod && <button onClick={()=>del(m.id)} className="text-red-400 hover:underline ml-2">удалить</button>}
+                {isMod && <button onClick={()=>del(m.id)} className="text-white/60 hover:underline ml-2">удалить</button>}
               </div>
               <div className="text-sm text-white/90 break-words mt-1">{m.content}</div>
             </div>
@@ -58,7 +58,7 @@ export default function ChatPage(){
         <input value={text} onChange={e=>setText(e.target.value)} placeholder="Написать сообщение..." className="flex-1 px-4 py-3 rounded-full bg-white/5 border border-white/10 outline-none text-sm" />
         <button className="px-6 py-3 rounded-full btn-primary text-white font-bold text-sm">Отправить</button>
       </form>
-      {err && <div className="mt-2 text-sm text-red-400 bg-red-500/10 p-2 rounded-xl">{err}</div>}
+      {err && <div className="mt-2 text-sm text-white/60 bg-white/5 p-2 rounded-xl">{err}</div>}
     </div>
   )
 }

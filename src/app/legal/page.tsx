@@ -46,11 +46,11 @@ function Section({
 /** Красная плашка — самое важное, что чаще всего оспаривают. */
 function Danger({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-red-500/30 bg-red-500/[0.07] p-3.5 flex gap-2.5">
-      <span className="text-red-300 shrink-0 mt-0.5">
+    <div className="rounded-xl border border-white/15 bg-white/[0.04] p-3.5 flex gap-2.5">
+      <span className="text-white/60 shrink-0 mt-0.5">
         <IconShield size={16} />
       </span>
-      <div className="text-sm text-red-100/90 space-y-2">{children}</div>
+      <div className="text-sm text-white/70 space-y-2">{children}</div>
     </div>
   );
 }
@@ -115,14 +115,14 @@ export default function LegalPage() {
             </span>
           </li>
           <li className="flex gap-2">
-            <span className="text-red-400 shrink-0">→</span>
+            <span className="text-white/60 shrink-0">→</span>
             <span>
               <b className="text-white">После активации ключа возврат невозможен</b> — товар
               цифровой.
             </span>
           </li>
           <li className="flex gap-2">
-            <span className="text-red-400 shrink-0">→</span>
+            <span className="text-white/60 shrink-0">→</span>
             <span>
               Передал ключ другому — <b className="text-white">ключ удаляется без возврата денег</b>.
             </span>
@@ -298,7 +298,7 @@ export default function LegalPage() {
               "Софт не запускается из-за твоего антивируса, кривой сборки игры, слабого железа или настроек системы — если на нашей стороне всё работает.",
             ].map((t) => (
               <li key={t} className="flex gap-2">
-                <span className="text-red-400 shrink-0">✕</span>
+                <span className="text-white/60 shrink-0">✕</span>
                 <span>{t}</span>
               </li>
             ))}
@@ -345,7 +345,7 @@ export default function LegalPage() {
               "оскорбления, угрозы, реклама чужих читов в нашем чате и поддержке",
             ].map((t) => (
               <li key={t} className="flex gap-2">
-                <span className="text-red-400 shrink-0">✕</span>
+                <span className="text-white/60 shrink-0">✕</span>
                 <span>{t}</span>
               </li>
             ))}

@@ -181,14 +181,14 @@ export function VerifiedBadge({
         <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
           {isAdmin ? (
             <>
-              <stop offset="0%" stopColor="#a78bfa" />
-              <stop offset="55%" stopColor="#7c5cff" />
+              <stop offset="0%" stopColor="#cccccc" />
+              <stop offset="55%" stopColor="#aaaaaa" />
               <stop offset="100%" stopColor="#888888" />
             </>
           ) : (
             <>
-              <stop offset="0%" stopColor="#60a5fa" />
-              <stop offset="100%" stopColor="#2563eb" />
+              <stop offset="0%" stopColor="#cccccc" />
+              <stop offset="100%" stopColor="#aaaaaa" />
             </>
           )}
         </linearGradient>
@@ -224,7 +224,7 @@ export function RoleName({
 }) {
   const cls =
     role === "ADMIN"
-      ? "text-red-400 font-bold"
+      ? "text-white/60 font-bold"
       : role === "MODERATOR"
         ? "text-white/60 font-bold"
         : "text-zinc-300";

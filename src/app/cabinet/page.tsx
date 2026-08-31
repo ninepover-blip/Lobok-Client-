@@ -337,7 +337,7 @@ export default function Cabinet() {
       {(msg || err) && (
         <div
           className={`p-3 rounded-xl text-sm ${
-            err ? "bg-red-500/15 text-red-200 border border-red-500/20" : "bg-white/5 text-white/70"
+            err ? "bg-white/5 text-white/60 border border-white/10" : "bg-white/5 text-white/70"
           }`}
         >
           {err || msg}
@@ -355,7 +355,7 @@ export default function Cabinet() {
                 alt=""
               />
               {(me.role === "ADMIN" || me.role === "MODERATOR") && (
-                <span className="absolute -bottom-1 -right-1 rounded-full bg-[#0a0a14] p-0.5">
+                <span className="absolute -bottom-1 -right-1 rounded-full bg-[#111111] p-0.5">
                   <VerifiedBadge role={me.role} size={22} />
                 </span>
               )}
@@ -365,7 +365,7 @@ export default function Cabinet() {
                 <span
                   className={`text-xl font-bold ${
                     me.role === "ADMIN"
-                      ? "text-red-400"
+                      ? "text-white/60"
                       : me.role === "MODERATOR"
                         ? "text-white/60"
                         : "text-zinc-300"
@@ -464,7 +464,7 @@ export default function Cabinet() {
 
             {tg?.linked ? (
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-[#2AABEE]/10 text-[#5cc8f5]">
+                <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-white/5 text-white/60">
                   <IconTelegram size={14} />
                   Привязан{tg.telegramUsername ? `: @${tg.telegramUsername}` : ""}
                 </div>
@@ -486,7 +486,7 @@ export default function Cabinet() {
               <div className="space-y-2">
                 <button
                   onClick={linkTelegram}
-                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-[#2AABEE] text-white text-xs font-bold"
+                  className="w-full inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-full bg-white/10 text-white text-xs font-bold"
                 >
                   <IconTelegram size={15} /> Привязать Telegram в 1 клик
                 </button>
@@ -580,7 +580,7 @@ export default function Cabinet() {
                       }}
                       placeholder="Промокод, если есть"
                       className={`flex-1 px-3 py-2.5 rounded-xl bg-white/[0.04] border text-sm font-mono uppercase tracking-wide placeholder:font-sans placeholder:normal-case placeholder:tracking-normal ${
-                        promoErr ? "border-red-500/40" : "border-white/10"
+                        promoErr ? "border-white/20" : "border-white/10"
                       }`}
                     />
                     <button
@@ -591,7 +591,7 @@ export default function Cabinet() {
                       {promoBusy ? "..." : "Применить"}
                     </button>
                   </div>
-                  {promoErr && <p className="text-xs text-red-300 px-1">{promoErr}</p>}
+                  {promoErr && <p className="text-xs text-white/60 px-1">{promoErr}</p>}
                 </>
               ) : (
                 <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/15">
@@ -636,7 +636,7 @@ export default function Cabinet() {
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center gap-2 text-amber-300 text-xs">
+                    <div className="flex items-center gap-2 text-white/60 text-xs">
                       <IconClock size={14} /> Ожидаем оплату…
                     </div>
                     {(order.instructions?.payUrl || order.instructions?.auto) && (
@@ -687,7 +687,7 @@ export default function Cabinet() {
                       )}
                       <button
                         onClick={() => cancelOrder()}
-                        className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-red-300 hover:border-red-500/40 text-xs font-bold"
+                        className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white/80 hover:border-white/20 text-xs font-bold"
                       >
                         Отменить заказ
                       </button>
@@ -713,8 +713,8 @@ export default function Cabinet() {
                             p.status === "PAID"
                               ? "text-white/70"
                               : p.status === "CANCELLED"
-                                ? "text-red-400"
-                                : "text-amber-400"
+                                ? "text-white/60"
+                                : "text-white/60"
                           }`}
                         >
                           {p.status}
@@ -723,7 +723,7 @@ export default function Cabinet() {
                           <button
                             onClick={() => cancelOrder(p.id)}
                             title="Отменить заказ"
-                            className="text-white/30 hover:text-red-400 font-bold px-1"
+                            className="text-white/30 hover:text-white/60 font-bold px-1"
                           >
                             ✕
                           </button>
@@ -774,7 +774,7 @@ export default function Cabinet() {
                       k.status === "ACTIVE"
                         ? "bg-white/80 text-black"
                         : k.status === "REVOKED"
-                          ? "bg-red-500 text-white"
+                          ? "bg-white/10 text-white/60"
                           : "bg-white/10"
                     }`}
                   >
@@ -812,7 +812,7 @@ export default function Cabinet() {
                 <a
                   href="https://discord.gg/ASXzHaQfvj"
                   target="_blank"
-                  className="text-[#8b95f7] underline inline-flex items-center gap-1"
+                  className="text-white/60 underline inline-flex items-center gap-1"
                 >
                   <IconDiscord size={13} /> Discord
                 </a>
@@ -825,7 +825,7 @@ export default function Cabinet() {
                 <IconLock size={13} /> Шаг 2: Верификация через Telegram
               </div>
               {!me.is2FAEnabled || !me.telegramId ? (
-                <p className="text-[11px] text-amber-300/80">
+                <p className="text-[11px] text-white/50">
                   Нужно привязать Telegram и включить 2FA в настройках аккаунта (слева).
                 </p>
               ) : freeStep === "idle" ? (

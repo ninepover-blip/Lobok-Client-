@@ -23,7 +23,7 @@ export default function RegisterPage(){
         <form onSubmit={submit} className="space-y-3">
           <input value={username} onChange={e=>setUsername(e.target.value)} placeholder="Логин (3-20, латиница)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30" />
           <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Пароль (мин 4)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30" />
-          {err && <div className="text-sm text-red-400 bg-red-500/10 p-2 rounded-xl">{err}</div>}
+          {err && <div className="text-sm text-white/60 bg-white/5 p-2 rounded-xl">{err}</div>}
           <button disabled={loading} className="w-full py-3 rounded-xl btn-primary text-white font-bold">{loading?"...":"Создать аккаунт"}</button>
           <p className="text-[11px] text-center text-white/35 leading-relaxed">
             Создавая аккаунт, ты принимаешь{" "}

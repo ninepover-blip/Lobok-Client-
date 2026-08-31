@@ -94,7 +94,7 @@ export default function ForgotPage() {
               autoFocus
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30"
             />
-            {err && <div className="text-sm text-red-300 bg-red-500/10 p-2.5 rounded-xl">{err}</div>}
+            {err && <div className="text-sm text-white/60 bg-white/5 p-2.5 rounded-xl">{err}</div>}
             <button
               onClick={() => sendCode()}
               disabled={loading}
@@ -149,7 +149,7 @@ export default function ForgotPage() {
             {info && (
               <div className="text-sm text-white/70 bg-white/5 p-2.5 rounded-xl">{info}</div>
             )}
-            {err && <div className="text-sm text-red-300 bg-red-500/10 p-2.5 rounded-xl">{err}</div>}
+            {err && <div className="text-sm text-white/60 bg-white/5 p-2.5 rounded-xl">{err}</div>}
 
             <button
               disabled={loading || code.length < 6}

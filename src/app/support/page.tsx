@@ -9,7 +9,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 const STATUS_CLASS: Record<string, string> = {
   OPEN: "bg-white/10 text-white/70",
-  PENDING: "bg-amber-500/20 text-amber-300",
+  PENDING: "bg-white/10 text-white/60",
   CLOSED: "bg-white/10 text-white/50",
 };
 
@@ -180,7 +180,7 @@ export default function SupportPage() {
 
       <div className="rounded-[22px] glass p-4 flex flex-col min-h-[500px]">
         {err && (
-          <div className="mb-2 text-sm text-red-300 bg-red-500/10 border border-red-500/20 p-2 rounded-xl">
+          <div className="mb-2 text-sm text-white/60 bg-white/5 border border-white/10 p-2 rounded-xl">
             {err}
           </div>
         )}

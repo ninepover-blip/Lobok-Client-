@@ -120,7 +120,7 @@ export default function LoginPage() {
           {info && (
             <div className="text-sm text-white/70 bg-white/5 p-2.5 rounded-xl">{info}</div>
           )}
-          {err && <div className="text-sm text-red-300 bg-red-500/10 p-2.5 rounded-xl">{err}</div>}
+          {err && <div className="text-sm text-white/60 bg-white/5 p-2.5 rounded-xl">{err}</div>}
 
           <button
             disabled={loading || (need2FA && code.length < 6)}

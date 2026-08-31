@@ -86,7 +86,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             alt=""
           />
           {(user.role === "ADMIN" || user.role === "MODERATOR") && (
-            <span className="absolute -bottom-1.5 -right-1.5 rounded-full bg-[#0a0a14] p-0.5">
+            <span className="absolute -bottom-1.5 -right-1.5 rounded-full bg-[#111111] p-0.5">
               <VerifiedBadge role={user.role} size={26} />
             </span>
           )}
@@ -97,7 +97,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
             <span
               className={`text-2xl font-bold ${
                 user.role === "ADMIN"
-                  ? "text-red-500 font-black"
+                  ? "text-white/60 font-black"
                   : user.role === "MODERATOR"
                     ? "text-white/60"
                     : "text-zinc-300"
@@ -110,17 +110,17 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             <RoleBadge role={user.role} />
             {user.telegramUsername && (
-              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#2AABEE]/15 text-[#5cc8f5]">
+              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-white/10 text-white/60">
                 <IconTelegram size={13} /> @{user.telegramUsername}
               </span>
             )}
             {user.isBanned && (
-              <span className="text-xs px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 font-bold">
+              <span className="text-xs px-2.5 py-1 rounded-full bg-white/10 text-white/60 font-bold">
                 Забанен
               </span>
             )}
             {user.isMuted && (
-              <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-bold">
+              <span className="text-xs px-2.5 py-1 rounded-full bg-white/10 text-white/60 font-bold">
                 Мут
               </span>
             )}
@@ -218,7 +218,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                     k.status === "ACTIVE"
                       ? "bg-white/80 text-black"
                       : k.status === "REVOKED"
-                        ? "bg-red-500 text-white"
+                        ? "bg-white/10 text-white/60"
                         : "bg-white/10 text-white/60"
                   }`}
                 >

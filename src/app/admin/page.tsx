@@ -20,11 +20,11 @@ type Tab = "keys" | "news" | "users" | "payments" | "promo" | "site";
 function promoState(p: { isActive: boolean; expiresAt: string | null; maxUses: number | null; uses: number }) {
   if (!p.isActive) return { label: "Выключен", cls: "bg-white/10 text-white/50" };
   if (p.expiresAt && new Date(p.expiresAt).getTime() < Date.now())
-    return { label: "Истёк", cls: "bg-red-500/15 text-red-300" };
+    return { label: "Истёк", cls: "bg-white/5 text-white/60" };
   if (p.maxUses !== null && p.uses >= p.maxUses)
-    return { label: "Исчерпан", cls: "bg-red-500/15 text-red-300" };
+    return { label: "Исчерпан", cls: "bg-white/5 text-white/60" };
   if (p.maxUses !== null && p.uses >= p.maxUses * 0.8)
-    return { label: "Заканчивается", cls: "bg-amber-500/15 text-amber-300" };
+    return { label: "Заканчивается", cls: "bg-white/5 text-white/60" };
   return { label: "Активен", cls: "bg-white/10 text-white/70" };
 }
 
@@ -283,7 +283,7 @@ export default function AdminPage() {
       {(msg || err) && (
         <div
           className={`p-3 rounded-xl text-sm ${
-            err ? "bg-red-500/15 text-red-200 border border-red-500/20" : "bg-white/10 text-white/60"
+            err ? "bg-white/5 text-white/60 border border-white/10" : "bg-white/10 text-white/60"
           }`}
         >
           {err || msg}
@@ -301,7 +301,7 @@ export default function AdminPage() {
           >
             {t.icon} {t.title}
             {!!t.badge && (
-              <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-black text-[10px] font-bold">
+              <span className="px-1.5 py-0.5 rounded-full bg-white/80 text-black text-[10px] font-bold">
                 {t.badge}
               </span>
             )}
@@ -318,7 +318,7 @@ export default function AdminPage() {
               <select
                 value={gen.type}
                 onChange={(e) => setGen({ ...gen, type: e.target.value })}
-                className="px-3 py-2 rounded-xl bg-[#1a1a2e] border border-white/10 text-sm"
+                className="px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm"
               >
                 <option value="D30">30д — 100₽/50₴</option>
                 <option value="D90">90д — 250₽/125₴</option>
@@ -373,7 +373,7 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    <button onClick={() => keyAction(k.id, "revoke")} className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 text-xs">Revoke</button>
+                    <button onClick={() => keyAction(k.id, "revoke")} className="px-2.5 py-1 rounded-full bg-white/10 text-white/60 text-xs">Revoke</button>
                     <button onClick={() => keyAction(k.id, "unrevoke")} className="px-2.5 py-1 rounded-full bg-white/10 text-white/70 text-xs">Unrevoke</button>
                     <button onClick={() => keyAction(k.id, "regenerate")} className="px-2.5 py-1 rounded-full bg-white/10 text-xs">Regen</button>
                     <button
@@ -390,7 +390,7 @@ export default function AdminPage() {
                       onClick={() => {
                         if (confirm("Удалить ключ?")) fetch(`/api/keys/${k.id}`, { method: "DELETE" }).then(reload);
                       }}
-                      className="px-2.5 py-1 rounded-full bg-black text-red-400 text-xs border border-red-500/20"
+                      className="px-2.5 py-1 rounded-full bg-white/10 text-white/60 text-xs border border-white/10"
                     >
                       Del
                     </button>
@@ -455,7 +455,7 @@ export default function AdminPage() {
                     </div>
                     <button
                       onClick={() => delNews(n.id)}
-                      className="px-2.5 py-1 rounded-full bg-red-500/20 text-red-300 text-xs shrink-0"
+                      className="px-2.5 py-1 rounded-full bg-white/10 text-white/60 text-xs shrink-0"
                     >
                       Удалить
                     </button>
@@ -480,14 +480,14 @@ export default function AdminPage() {
                   <RoleName username={u.username} role={u.role} size={13} />
                   <div className="text-xs text-white/40 flex items-center gap-1.5 mt-0.5">
                     <RoleBadge role={u.role} />
-                    {u.isBanned && <span className="text-red-400">BAN</span>}
-                    {u.isMuted && <span className="text-amber-400">MUTE</span>}
+                    {u.isBanned && <span className="text-white/60">BAN</span>}
+                    {u.isMuted && <span className="text-white/60">MUTE</span>}
                   </div>
                 </div>
                 <select
                   value={u.role}
                   onChange={(e) => setRole(u.id, e.target.value)}
-                  className="text-xs px-2 py-1 rounded-full bg-[#1a1a2e] border border-white/10"
+                  className="text-xs px-2 py-1 rounded-full bg-[#111111] border border-white/10"
                 >
                   <option value="USER">USER</option>
                   <option value="MODERATOR">MODERATOR</option>
@@ -537,8 +537,8 @@ export default function AdminPage() {
                       p.status === "PAID"
                         ? "bg-white/80 text-black"
                         : p.status === "CANCELLED"
-                          ? "bg-red-500/20 text-red-300"
-                          : "bg-amber-500/20 text-amber-300"
+                          ? "bg-white/10 text-white/60"
+                          : "bg-white/10 text-white/60"
                     }`}
                   >
                     {p.status}
@@ -559,7 +559,7 @@ export default function AdminPage() {
                           ? "Отменить покупку и отозвать выданный ключ"
                           : "Отменить заказ"
                       }
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-red-300 hover:border-red-500/40 text-xs font-bold"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-white/80 hover:border-white/20 text-xs font-bold"
                     >
                       {p.status === "PAID" ? "Отменить выдачу" : "Отменить"}
                     </button>
@@ -588,7 +588,7 @@ export default function AdminPage() {
                     value={promoForm.code}
                     onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
                     placeholder="SUMMER25"
-                    className="w-full px-3 py-2 rounded-xl bg-[#1a1a2e] border border-white/10 text-sm font-mono uppercase"
+                    className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm font-mono uppercase"
                   />
                   <button
                     type="button"
@@ -610,7 +610,7 @@ export default function AdminPage() {
                   value={promoForm.discount}
                   onChange={(e) => setPromoForm({ ...promoForm, discount: e.target.value })}
                   placeholder="20"
-                  className="w-full px-3 py-2 rounded-xl bg-[#1a1a2e] border border-white/10 text-sm"
+                  className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm"
                 />
               </label>
 
@@ -622,7 +622,7 @@ export default function AdminPage() {
                   value={promoForm.durationDays}
                   onChange={(e) => setPromoForm({ ...promoForm, durationDays: e.target.value })}
                   placeholder="1"
-                  className="w-full px-3 py-2 rounded-xl bg-[#1a1a2e] border border-white/10 text-sm"
+                  className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm"
                 />
                 <span className="text-[10px] text-white/30">пусто или 0 — бессрочно</span>
               </label>
@@ -635,7 +635,7 @@ export default function AdminPage() {
                   value={promoForm.maxUses}
                   onChange={(e) => setPromoForm({ ...promoForm, maxUses: e.target.value })}
                   placeholder="50"
-                  className="w-full px-3 py-2 rounded-xl bg-[#1a1a2e] border border-white/10 text-sm"
+                  className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm"
                 />
                 <span className="text-[10px] text-white/30">пусто или 0 — без лимита</span>
               </label>
@@ -645,7 +645,7 @@ export default function AdminPage() {
               value={promoForm.comment}
               onChange={(e) => setPromoForm({ ...promoForm, comment: e.target.value })}
               placeholder="Комментарий для себя — например «для стримера Вани» (необязательно)"
-              className="w-full px-3 py-2 rounded-xl bg-[#1a1a2e] border border-white/10 text-sm"
+              className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm"
             />
 
             {/* предпросмотр цен */}
@@ -722,7 +722,7 @@ export default function AdminPage() {
                         </button>
                         <button
                           onClick={() => deletePromo(p.id, p.code)}
-                          className="px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 text-xs"
+                          className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 text-xs"
                           title="Удалить"
                         >
                           <IconClose size={13} />
@@ -763,7 +763,7 @@ export default function AdminPage() {
                       <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-white/60"
+                            pct >= 100 ? "bg-white/40" : pct >= 80 ? "bg-white/60" : "bg-white/60"
                           }`}
                           style={{ width: `${pct}%` }}
                         />
