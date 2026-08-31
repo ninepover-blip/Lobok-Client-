@@ -34,12 +34,6 @@ export async function GET(req: NextRequest) {
   const hours = Math.floor(playtimeMinutes / 60);
   const mins = playtimeMinutes % 60;
 
-  const lastLogin = await prisma.loginSession.findFirst({
-    where: { userId: user.id },
-    orderBy: { startedAt: "desc" },
-    select: { startedAt: true },
-  });
-
   return NextResponse.json({
     username: user.username,
     role: user.role,
@@ -47,6 +41,6 @@ export async function GET(req: NextRequest) {
     isActive: activeKeys.length > 0,
     playtime: hours > 0 ? `${hours}ч ${mins}м` : `${mins}м`,
     createdAt: user.createdAt?.toLocaleDateString("ru-RU") || "",
-    lastLogin: lastLogin?.startedAt?.toLocaleString("ru-RU") || "",
+    lastLogin: user.lastSeenAt?.toLocaleString("ru-RU") || "",
   });
 }
