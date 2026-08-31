@@ -16,28 +16,34 @@ async function main(){
       console.log(`Updated admin ${username} -> ADMIN`);
     }
   }
-  // demo launcher versions
-  const hasLauncher = await prisma.launcherVersion.findFirst({ where:{ forClient:false }});
+  // demo releases
+  const hasLauncher = await prisma.release.findFirst({ where:{ type:"launcher" }});
   if(!hasLauncher){
-    await prisma.launcherVersion.create({
+    await prisma.release.create({
       data:{
-        version:"1.0.3",
-        downloadUrl:"https://example.com/lobok-launcher.exe",
-        changelog:"Initial launcher with auto-update",
+        type:"launcher",
+        version:"1.0.0",
+        originalFilename:"LobokLauncher.exe",
+        storedFilename:"LobokLauncher.exe",
+        filePath:"",
+        fileSize:0,
         isLatest:true,
-        forClient:false
+        isActive:true
       }
     });
-    await prisma.launcherVersion.create({
+    await prisma.release.create({
       data:{
-        version:"2.4.0",
-        downloadUrl:"https://example.com/lobok-client.jar",
-        changelog:"HvH MetaHvH fixes, Resolver improvements",
+        type:"mod",
+        version:"1.0.0",
+        originalFilename:"Lobok-Client-1.16.5.jar",
+        storedFilename:"Lobok-Client-1.16.5.jar",
+        filePath:"",
+        fileSize:0,
         isLatest:true,
-        forClient:true
+        isActive:true
       }
     });
-    console.log("Seeded launcher versions");
+    console.log("Seeded releases");
   }
   // example news
   const layf = await prisma.user.findUnique({ where:{ username:"LayF"}});
