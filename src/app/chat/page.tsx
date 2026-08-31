@@ -39,7 +39,7 @@ export default function ChatPage(){
       </div>
       <div className="flex-1 overflow-y-auto glass border-t-0 rounded-b-none p-4 space-y-2 bg-black/20">
         {msgs.map(m=>(
-          <div key={m.id} className={`flex gap-3 p-3 rounded-xl ${m.isPinned?"bg-violet-500/10 border border-violet-500/20":"bg-white/[0.03] border border-white/5"}`}>
+          <div key={m.id} className={`flex gap-3 p-3 rounded-xl ${m.isPinned?"bg-white/5 border border-white/10":"bg-white/[0.03] border border-white/5"}`}>
             <img src={m.user.avatarUrl||"/lobok.jpg"} className="w-8 h-8 rounded-full object-cover flex-shrink-0" alt="" />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 text-xs">

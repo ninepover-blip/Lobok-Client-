@@ -55,8 +55,7 @@ export default async function Home() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10 space-y-8">
       {/* hero */}
-      <section className="relative overflow-hidden rounded-[28px] glass gradient-border p-6 sm:p-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-600/15 via-transparent to-cyan-500/10 pointer-events-none" />
+      <section className="relative overflow-hidden rounded-[28px] glass p-6 sm:p-10">
         <div className="relative grid lg:grid-cols-[1.2fr_0.8fr] gap-8 items-center">
           <div className="space-y-5">
             <div className="inline-flex items-center gap-2 text-xs px-3 py-1 rounded-full bg-white/5 border border-white/10">
@@ -70,9 +69,9 @@ export default async function Home() {
               KillAura, AntiBot, Resolver, Velocity, обходы Matrix/AAC/Vulcan. Лаунчер с автообновлением и привязкой ключа к @USER + IP • 1 ключ = 1 устройство.
             </p>
             <div className="flex flex-wrap gap-3">
-              <a href="#pricing" className="px-6 py-3 rounded-full btn-primary text-white font-semibold">Купить ключ — от 100₽</a>
+              <a href="#pricing" className="px-6 py-3 rounded-full btn-primary font-semibold">Купить ключ — от 100₽</a>
               <Link href="/chat" className="px-6 py-3 rounded-full btn-ghost">Глобальный чат</Link>
-              <a href="https://discord.gg/ASXzHaQfvj" target="_blank" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#5865F2] text-white font-medium"><IconDiscord size={18} /> Discord</a>
+              <a href="https://discord.gg/ASXzHaQfvj" target="_blank" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#333] text-white font-medium hover:bg-[#444]"><IconDiscord size={18} /> Discord</a>
             </div>
             <div className="flex flex-wrap gap-2 text-xs text-white/50">
               <span className="px-3 py-1 rounded-full bg-white/5 border border-white/5">MetaHvH #1</span>
@@ -110,8 +109,8 @@ export default async function Home() {
           { title:"90 дней", rub:250, uah:125, days:90, popular:true, desc:"Хит • выгода 17%" },
           { title:"Навсегда", rub:400, uah:200, days:0, popular:false, desc:"Топ • lifetime обновления" },
         ].map(p=>(
-          <div key={p.title} className={`relative rounded-[22px] p-6 flex flex-col ${p.popular?"glass-strong ring-1 ring-violet-500/40 scale-[1.02]":"glass"}`}>
-            {p.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs px-3 py-1 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 font-bold">РЕКОМЕНДУЕМ</div>}
+          <div key={p.title} className={`relative rounded-[22px] p-6 flex flex-col ${p.popular?"glass-strong ring-1 ring-white/20 scale-[1.02]":"glass"}`}>
+            {p.popular && <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-xs px-3 py-1 rounded-full bg-white text-black font-bold">РЕКОМЕНДУЕМ</div>}
             <h3 className="font-bold text-lg">{p.title}</h3>
             <p className="text-sm text-white/50">{p.desc}</p>
             <div className="mt-4 flex items-baseline gap-2">
@@ -124,7 +123,7 @@ export default async function Home() {
               <li>✓ MetaHvH конфиги</li>
               <li>✓ Поддержка 24/7</li>
             </ul>
-            <Link href="/buy" className={`mt-6 w-full py-3 rounded-full text-center font-semibold ${p.popular?"btn-primary text-white":"bg-white text-black hover:bg-zinc-100"}`}>Получить ключ</Link>
+            <Link href="/buy" className={`mt-6 w-full py-3 rounded-full text-center font-semibold ${p.popular?"btn-primary":"bg-white/10 text-white hover:bg-white/15"}`}>Получить ключ</Link>
           </div>
         ))}
       </section>
@@ -143,9 +142,9 @@ export default async function Home() {
             { icon: <IconKey size={18} />, t: "Защита", d: "HWID+IP привязка, изъятие при передаче" },
             { icon: <IconChat size={18} />, t: "Соц", d: "Глобальный чат + саппорт-тикет" },
           ].map((f) => (
-            <div key={f.t} className="rounded-xl bg-white/[0.04] border border-white/5 p-4 hover:bg-white/[0.07] transition">
+            <div key={f.t} className="rounded-xl bg-white/[0.04] border border-white/5 p-4 hover:bg-white/[0.07] transition-all duration-200 hover:translate-y-[-1px]">
               <div className="flex items-center gap-2 font-semibold">
-                <span className="grid place-items-center w-8 h-8 rounded-lg bg-violet-500/15 text-violet-300">{f.icon}</span>
+                <span className="grid place-items-center w-8 h-8 rounded-lg bg-white/10 text-white/70">{f.icon}</span>
                 {f.t}
               </div>
               <div className="text-white/50 text-xs mt-2">{f.d}</div>
@@ -172,7 +171,7 @@ export default async function Home() {
           ) : (
             <div className="rounded-2xl overflow-hidden border border-white/10 bg-black aspect-video grid place-items-center text-center p-6">
               <div>
-                <div className="mx-auto w-14 h-14 rounded-full bg-violet-500/20 text-violet-300 grid place-items-center"><IconPlay size={28} /></div>
+                <div className="mx-auto w-14 h-14 rounded-full bg-white/10 text-white/60 grid place-items-center"><IconPlay size={28} /></div>
                 <p className="mt-3 text-sm text-white/60">Видео скоро появится</p>
                 <p className="text-xs text-white/30 mt-1">Админ добавляет ссылку в панели: вкладка «Сайт»</p>
               </div>
@@ -186,8 +185,8 @@ export default async function Home() {
               "Вставь ключ — он привяжется к твоему аккаунту и устройству",
               "Заходи на MetaHvH и играй, статистика считается автоматически",
             ].map((step, i) => (
-              <li key={i} className="flex gap-3 rounded-xl bg-white/[0.04] border border-white/5 p-3">
-                <span className="w-6 h-6 shrink-0 rounded-full bg-violet-500/20 text-violet-300 grid place-items-center text-xs font-bold">{i + 1}</span>
+              <li key={i} className="flex gap-3 rounded-xl bg-white/[0.04] border border-white/5 p-3 transition-all duration-200 hover:bg-white/[0.06]">
+                <span className="w-6 h-6 shrink-0 rounded-full bg-white/10 text-white/70 grid place-items-center text-xs font-bold">{i + 1}</span>
                 <span className="text-white/70">{step}</span>
               </li>
             ))}

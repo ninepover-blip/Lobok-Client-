@@ -141,7 +141,7 @@ export default function SupportPage() {
                   key={f}
                   onClick={() => setFilter(f)}
                   className={`text-[10px] px-2 py-1 rounded-full ${
-                    filter === f ? "bg-violet-500/30 text-violet-200" : "bg-white/5 text-white/40"
+                    filter === f ? "bg-white/10 text-white/70" : "bg-white/5 text-white/40"
                   }`}
                 >
                   {f === "ALL" ? "Все" : f === "OPEN" ? "Активные" : "Закрытые"}
@@ -155,7 +155,7 @@ export default function SupportPage() {
               onClick={() => openTicket(t.id)}
               className={`w-full text-left p-3 rounded-xl border transition ${
                 selected?.id === t.id
-                  ? "bg-violet-500/15 border-violet-500/30"
+                  ? "bg-white/5 border-white/15"
                   : "bg-white/[0.03] border-white/5 hover:bg-white/5"
               } ${t.status === "CLOSED" ? "opacity-60" : ""}`}
             >
@@ -229,7 +229,7 @@ export default function SupportPage() {
                   key={m.id}
                   className={`p-3 rounded-xl max-w-[85%] ${
                     m.isPinned
-                      ? "bg-violet-500/10 border border-violet-500/20 ml-auto"
+                      ? "bg-white/5 border border-white/10 ml-auto"
                       : "bg-white/[0.04] border border-white/5"
                   }`}
                 >

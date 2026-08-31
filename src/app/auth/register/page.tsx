@@ -21,18 +21,18 @@ export default function RegisterPage(){
         <h1 className="text-2xl font-black">Регистрация</h1>
         <p className="text-sm text-white/50">1 ключ = 1 устройство • привязка @USER + IP</p>
         <form onSubmit={submit} className="space-y-3">
-          <input value={username} onChange={e=>setUsername(e.target.value)} placeholder="Логин (3-20, латиница)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-violet-500" />
-          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Пароль (мин 4)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-violet-500" />
+          <input value={username} onChange={e=>setUsername(e.target.value)} placeholder="Логин (3-20, латиница)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30" />
+          <input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Пароль (мин 4)" className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30" />
           {err && <div className="text-sm text-red-400 bg-red-500/10 p-2 rounded-xl">{err}</div>}
           <button disabled={loading} className="w-full py-3 rounded-xl btn-primary text-white font-bold">{loading?"...":"Создать аккаунт"}</button>
           <p className="text-[11px] text-center text-white/35 leading-relaxed">
             Создавая аккаунт, ты принимаешь{" "}
-            <Link href="/legal" className="text-violet-400/80 hover:text-violet-300 underline">
+            <Link href="/legal" className="text-white/60 hover:text-white/70 underline">
               политику конфиденциальности и условия
             </Link>
           </p>
         </form>
-        <div className="text-sm text-center text-white/50">Есть аккаунт? <Link href="/auth/login" className="text-violet-400">Войти</Link></div>
+        <div className="text-sm text-center text-white/50">Есть аккаунт? <Link href="/auth/login" className="text-white/60">Войти</Link></div>
       </div>
     </div>
   )

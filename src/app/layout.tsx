@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <a className="hover:text-white transition-colors" href="https://discord.gg/ASXzHaQfvj" target="_blank" rel="noopener">Discord</a>
               <a className="hover:text-white transition-colors" href="/stats">Статистика</a>
               <a
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-violet-500/40 bg-violet-500/10 text-violet-200 hover:bg-violet-500/20 hover:text-white transition-colors font-medium"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 bg-white/10 text-white/70 hover:bg-white/15 hover:text-white transition-colors font-medium"
                 href="/legal"
               >
                 Политика и условия

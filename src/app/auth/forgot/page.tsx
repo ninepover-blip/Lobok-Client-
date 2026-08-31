@@ -67,7 +67,7 @@ export default function ForgotPage() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-12">
-      <div className="rounded-[24px] glass gradient-border p-6 sm:p-8 space-y-5">
+      <div className="rounded-[24px] glass p-6 sm:p-8 space-y-5">
         <div>
           <h1 className="text-2xl font-black">Забыл пароль</h1>
           <p className="text-sm text-white/50 mt-1">
@@ -79,7 +79,7 @@ export default function ForgotPage() {
 
         {step === 1 && (
           <div className="space-y-3">
-            <div className="flex items-start gap-2 rounded-xl border border-violet-500/25 bg-violet-500/5 p-3 text-xs text-violet-100/80">
+            <div className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/3 p-3 text-xs text-white/60">
               <IconTelegram size={14} />
               <span>
                 Восстановление работает только через привязанный Telegram. Если бот не привязан —
@@ -92,7 +92,7 @@ export default function ForgotPage() {
               placeholder="Логин"
               autoComplete="username"
               autoFocus
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-violet-500"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30"
             />
             {err && <div className="text-sm text-red-300 bg-red-500/10 p-2.5 rounded-xl">{err}</div>}
             <button
@@ -107,8 +107,8 @@ export default function ForgotPage() {
 
         {step === 2 && (
           <form onSubmit={reset} className="space-y-3">
-            <div className="space-y-2 rounded-xl border border-violet-500/30 bg-violet-500/5 p-3">
-              <div className="flex items-center gap-2 text-xs text-violet-200">
+            <div className="space-y-2 rounded-xl border border-white/15 bg-white/3 p-3">
+              <div className="flex items-center gap-2 text-xs text-white/70">
                 <IconLock size={14} /> Код из Telegram
               </div>
               <input
@@ -117,13 +117,13 @@ export default function ForgotPage() {
                 placeholder="000000"
                 inputMode="numeric"
                 autoFocus
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-violet-500/40 tracking-[0.4em] text-center text-lg font-bold"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 tracking-[0.4em] text-center text-lg font-bold"
               />
               <button
                 type="button"
                 onClick={() => sendCode(true)}
                 disabled={cooldown > 0}
-                className="text-xs text-violet-300 underline disabled:opacity-40 disabled:no-underline"
+                className="text-xs text-white/70 underline disabled:opacity-40 disabled:no-underline"
               >
                 {cooldown > 0 ? `Отправить ещё раз (${cooldown})` : "Отправить ещё раз"}
               </button>
@@ -135,7 +135,7 @@ export default function ForgotPage() {
               onChange={(e) => setPw(e.target.value)}
               placeholder="Новый пароль"
               autoComplete="new-password"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-violet-500"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30"
             />
             <input
               type="password"
@@ -143,11 +143,11 @@ export default function ForgotPage() {
               onChange={(e) => setPw2(e.target.value)}
               placeholder="Повтори новый пароль"
               autoComplete="new-password"
-              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-violet-500"
+              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30"
             />
 
             {info && (
-              <div className="text-sm text-violet-200 bg-violet-500/10 p-2.5 rounded-xl">{info}</div>
+              <div className="text-sm text-white/70 bg-white/5 p-2.5 rounded-xl">{info}</div>
             )}
             {err && <div className="text-sm text-red-300 bg-red-500/10 p-2.5 rounded-xl">{err}</div>}
 
@@ -187,7 +187,7 @@ export default function ForgotPage() {
 
         <div className="text-sm text-center text-white/50">
           Вспомнил пароль?{" "}
-          <Link href="/auth/login" className="text-violet-400">
+          <Link href="/auth/login" className="text-white/60">
             Войти
           </Link>
         </div>

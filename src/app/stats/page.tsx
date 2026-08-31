@@ -83,7 +83,7 @@ export default function StatsPage() {
                 </div>
                 <div className="mt-1 h-2 rounded-full bg-white/5 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400"
+                    className="h-full rounded-full bg-gradient-to-r from-white/30 to-white/10"
                     style={{ width: `${Math.round((s.count / max) * 100)}%` }}
                   />
                 </div>

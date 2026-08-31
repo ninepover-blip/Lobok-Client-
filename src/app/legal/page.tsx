@@ -32,7 +32,7 @@ function Section({
   return (
     <section id={id} className="scroll-mt-24">
       <h2 className="text-lg font-black flex items-center gap-2 mb-3">
-        <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-violet-500/15 text-violet-300 text-xs font-black shrink-0">
+        <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-white/5 text-white/70 text-xs font-black shrink-0">
           {n}
         </span>
         {icon}
@@ -83,8 +83,8 @@ export default function LegalPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 sm:py-14">
       {/* шапка */}
-      <div className="rounded-[24px] glass gradient-border p-6 sm:p-8 mb-5">
-        <div className="flex items-center gap-2 text-violet-300 text-xs font-bold uppercase tracking-wider mb-2">
+      <div className="rounded-[24px] glass p-6 sm:p-8 mb-5">
+        <div className="flex items-center gap-2 text-white/70 text-xs font-bold uppercase tracking-wider mb-2">
           <IconLock size={14} /> Документ
         </div>
         <h1 className="text-3xl sm:text-4xl font-black leading-tight">
@@ -102,13 +102,13 @@ export default function LegalPage() {
         <h2 className="font-black mb-3">Если коротко</h2>
         <ul className="space-y-2 text-sm text-white/70">
           <li className="flex gap-2">
-            <span className="text-violet-400 shrink-0">→</span>
+            <span className="text-white/60 shrink-0">→</span>
             <span>
               Мы не просим ни имя, ни email, ни телефон. Только логин и пароль.
             </span>
           </li>
           <li className="flex gap-2">
-            <span className="text-violet-400 shrink-0">→</span>
+            <span className="text-white/60 shrink-0">→</span>
             <span>
               Данные карты через нас <b className="text-white">не проходят</b> — оплата идёт
               напрямую в платёжный сервис.
@@ -140,7 +140,7 @@ export default function LegalPage() {
             <li key={id}>
               <a
                 href={`#${id}`}
-                className="text-white/60 hover:text-violet-300 transition-colors"
+                className="text-white/60 hover:text-white/70 transition-colors"
               >
                 <span className="text-white/30 mr-1.5">{i + 1}.</span>
                 {title}
@@ -207,7 +207,7 @@ export default function LegalPage() {
               "общая статистика сайта — в обезличенном виде",
             ].map((t) => (
               <li key={t} className="flex gap-2">
-                <span className="text-violet-400 shrink-0">•</span>
+                <span className="text-white/60 shrink-0">•</span>
                 <span>{t}</span>
               </li>
             ))}
@@ -254,7 +254,7 @@ export default function LegalPage() {
               ["Коды 2FA и восстановления", "5–10 минут, затем удаляются"],
             ].map(([a, b]) => (
               <li key={a} className="flex gap-2">
-                <span className="text-violet-400 shrink-0">•</span>
+                <span className="text-white/60 shrink-0">•</span>
                 <span>
                   <b className="text-white/90">{a}</b> — {b}
                 </span>
@@ -372,7 +372,7 @@ export default function LegalPage() {
               "Мы не связаны с Mojang, Microsoft и администрациями игровых серверов.",
             ].map((t) => (
               <li key={t} className="flex gap-2">
-                <span className="text-violet-400 shrink-0">•</span>
+                <span className="text-white/60 shrink-0">•</span>
                 <span>{t}</span>
               </li>
             ))}
@@ -397,7 +397,7 @@ export default function LegalPage() {
               "удалить аккаунт: напиши в поддержку, удалим в течение 7 дней",
             ].map((t) => (
               <li key={t} className="flex gap-2">
-                <span className="text-violet-400 shrink-0">•</span>
+                <span className="text-white/60 shrink-0">•</span>
                 <span>{t}</span>
               </li>
             ))}
@@ -417,7 +417,7 @@ export default function LegalPage() {
               "Коды входа и восстановления живут 5–10 минут и одноразовые.",
             ].map((t) => (
               <li key={t} className="flex gap-2">
-                <span className="text-violet-400 shrink-0">•</span>
+                <span className="text-white/60 shrink-0">•</span>
                 <span>{t}</span>
               </li>
             ))}
@@ -432,38 +432,38 @@ export default function LegalPage() {
           <p>По любым вопросам — возврат, отзыв ключа, удаление аккаунта, жалобы:</p>
           <ul className="space-y-1.5 pl-1">
             <li className="flex gap-2">
-              <span className="text-violet-400 shrink-0">•</span>
+              <span className="text-white/60 shrink-0">•</span>
               <span>
                 Поддержка на сайте —{" "}
-                <Link href="/support" className="text-violet-300 hover:underline">
+                <Link href="/support" className="text-white/70 hover:underline">
                   /support
                 </Link>{" "}
                 (отвечаем быстрее всего)
               </span>
             </li>
             <li className="flex gap-2">
-              <span className="text-violet-400 shrink-0">•</span>
+              <span className="text-white/60 shrink-0">•</span>
               <span>
                 Telegram-бот —{" "}
                 <a
                   href="https://t.me/LobokClient_bot"
                   target="_blank"
                   rel="noopener"
-                  className="text-violet-300 hover:underline"
+                  className="text-white/70 hover:underline"
                 >
                   @LobokClient_bot
                 </a>
               </span>
             </li>
             <li className="flex gap-2">
-              <span className="text-violet-400 shrink-0">•</span>
+              <span className="text-white/60 shrink-0">•</span>
               <span>
                 Discord —{" "}
                 <a
                   href="https://discord.gg/ASXzHaQfvj"
                   target="_blank"
                   rel="noopener"
-                  className="text-violet-300 hover:underline"
+                  className="text-white/70 hover:underline"
                 >
                   discord.gg/ASXzHaQfvj
                 </a>

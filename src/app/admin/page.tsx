@@ -381,7 +381,7 @@ export default function AdminPage() {
                         const u = prompt("Новый @username (пусто чтобы отвязать)", k.ownerUsername || "");
                         if (u !== null) keyAction(k.id, "bind", { username: u || null });
                       }}
-                      className="px-2.5 py-1 rounded-full bg-violet-500/20 text-violet-300 text-xs"
+                      className="px-2.5 py-1 rounded-full bg-white/10 text-white/70 text-xs"
                     >
                       Bind
                     </button>
@@ -706,7 +706,7 @@ export default function AdminPage() {
                   >
                     <div className="flex flex-wrap items-center gap-2.5">
                       <span className="font-mono font-bold text-base tracking-wide">{p.code}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-200 text-xs font-bold">
+                      <span className="px-2 py-0.5 rounded-full bg-white/10 text-white/70 text-xs font-bold">
                         −{p.discount}%
                       </span>
                       <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${st.cls}`}>
@@ -763,7 +763,7 @@ export default function AdminPage() {
                       <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-violet-500"
+                            pct >= 100 ? "bg-red-500" : pct >= 80 ? "bg-amber-500" : "bg-white/60"
                           }`}
                           style={{ width: `${pct}%` }}
                         />

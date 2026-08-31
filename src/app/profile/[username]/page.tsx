@@ -72,7 +72,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-4">
       {/* шапка */}
-      <div className="rounded-[24px] glass gradient-border p-6 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
+      <div className="rounded-[24px] glass p-6 flex flex-col sm:flex-row gap-6 items-start sm:items-center">
         <div className="relative">
           <img
             src={user.avatarUrl || "/lobok.jpg"}
@@ -165,7 +165,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
                 </div>
                 <div className="mt-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400"
+                    className="h-full rounded-full bg-gradient-to-r from-white/30 to-white/10"
                     style={{ width: `${Math.round((s.minutes / maxMin) * 100)}%` }}
                   />
                 </div>

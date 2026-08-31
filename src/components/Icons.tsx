@@ -240,7 +240,7 @@ export function RoleName({
 export function RoleBadge({ role }: { role: string }) {
   if (role === "ADMIN")
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white bg-gradient-to-r from-violet-600 to-blue-600">
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white bg-white/10">
         <VerifiedBadge role="ADMIN" size={13} /> ADMIN
       </span>
     );

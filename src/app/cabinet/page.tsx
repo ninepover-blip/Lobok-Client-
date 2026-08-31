@@ -337,7 +337,7 @@ export default function Cabinet() {
       {(msg || err) && (
         <div
           className={`p-3 rounded-xl text-sm ${
-            err ? "bg-red-500/15 text-red-200 border border-red-500/20" : "bg-violet-500/15 text-violet-200"
+            err ? "bg-red-500/15 text-red-200 border border-red-500/20" : "bg-white/5 text-white/70"
           }`}
         >
           {err || msg}
@@ -493,7 +493,7 @@ export default function Cabinet() {
                 {linking && (
                   <p className="text-[11px] text-white/40">
                     Открылся бот — нажми «Start». Страница обновится сама.{" "}
-                    <a href={linking.botUrl} target="_blank" className="text-violet-300 underline">
+                    <a href={linking.botUrl} target="_blank" className="text-white/70 underline">
                       Открыть ещё раз
                     </a>
                   </p>
@@ -521,7 +521,7 @@ export default function Cabinet() {
                   }}
                   className={`p-3 rounded-xl border text-left transition ${
                     buy.type === t.id
-                      ? "bg-violet-500/15 border-violet-500/40"
+                      ? "bg-white/5 border-white/20"
                       : "bg-white/[0.03] border-white/5 hover:bg-white/5"
                   }`}
                 >
@@ -554,7 +554,7 @@ export default function Cabinet() {
                   }}
                   className={`p-2.5 rounded-xl border text-left transition ${
                     buy.method === m.id
-                      ? "bg-violet-500/15 border-violet-500/40"
+                      ? "bg-white/5 border-white/20"
                       : "bg-white/[0.03] border-white/5 hover:bg-white/5"
                   }`}
                 >
@@ -621,7 +621,7 @@ export default function Cabinet() {
             </button>
             <p className="text-[11px] text-center text-white/35 leading-relaxed -mt-1">
               Оплачивая, ты соглашаешься с{" "}
-              <a href="/legal#refund" className="text-violet-400/80 hover:text-violet-300 underline">
+              <a href="/legal#refund" className="text-white/60 hover:text-white/80 underline">
                 условиями возврата
               </a>
               : после активации ключа возврат невозможен
@@ -756,7 +756,7 @@ export default function Cabinet() {
                   <div className="min-w-0">
                     <button
                       onClick={() => copy(k.key)}
-                      className="font-mono text-sm font-bold tracking-wide inline-flex items-center gap-2 hover:text-violet-300"
+                      className="font-mono text-sm font-bold tracking-wide inline-flex items-center gap-2 hover:text-white/80"
                       title="Скопировать"
                     >
                       {k.key} <IconCopy size={13} />
@@ -859,7 +859,7 @@ export default function Cabinet() {
                   <button
                     onClick={requestFreeCode}
                     disabled={freeBusy}
-                    className="text-[11px] text-violet-300 hover:text-violet-200"
+                    className="text-[11px] text-white/70 hover:text-white/80"
                   >
                     Отправить повторно
                   </button>
@@ -903,7 +903,7 @@ function Row({
       <span className="text-white/40 text-xs shrink-0">{label}</span>
       <button
         onClick={() => onCopy(value)}
-        className="font-mono text-xs text-right hover:text-violet-300 inline-flex items-center gap-1.5 min-w-0"
+        className="font-mono text-xs text-right hover:text-white/80 inline-flex items-center gap-1.5 min-w-0"
       >
         <span className="truncate">{value}</span>
         <IconCopy size={12} />

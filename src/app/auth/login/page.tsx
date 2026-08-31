@@ -61,7 +61,7 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-md mx-auto px-4 py-12">
-      <div className="rounded-[24px] glass gradient-border p-6 sm:p-8 space-y-5">
+      <div className="rounded-[24px] glass p-6 sm:p-8 space-y-5">
         <div>
           <h1 className="text-2xl font-black">Вход в Lobok</h1>
           <p className="text-sm text-white/50 mt-1">
@@ -76,7 +76,7 @@ export default function LoginPage() {
             placeholder="Логин"
             autoComplete="username"
             disabled={need2FA}
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-violet-500 disabled:opacity-60"
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30 disabled:opacity-60"
           />
           <input
             type="password"
@@ -85,12 +85,12 @@ export default function LoginPage() {
             placeholder="Пароль"
             autoComplete="current-password"
             disabled={need2FA}
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-violet-500 disabled:opacity-60"
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 outline-none focus:border-white/30 disabled:opacity-60"
           />
 
           {need2FA && (
-            <div className="space-y-2 rounded-xl border border-violet-500/30 bg-violet-500/5 p-3">
-              <div className="flex items-center gap-2 text-xs text-violet-200">
+            <div className="space-y-2 rounded-xl border border-white/15 bg-white/3 p-3">
+              <div className="flex items-center gap-2 text-xs text-white/70">
                 <IconLock size={14} /> Двухфакторная защита включена
               </div>
               <input
@@ -99,7 +99,7 @@ export default function LoginPage() {
                 placeholder="000000"
                 inputMode="numeric"
                 autoFocus
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-violet-500/40 tracking-[0.4em] text-center text-lg font-bold"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/20 tracking-[0.4em] text-center text-lg font-bold"
               />
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center gap-1.5 text-[11px] text-white/40">
@@ -109,7 +109,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => request2FA()}
                   disabled={cooldown > 0}
-                  className="text-xs text-violet-300 underline disabled:opacity-40 disabled:no-underline"
+                  className="text-xs text-white/70 underline disabled:opacity-40 disabled:no-underline"
                 >
                   {cooldown > 0 ? `Отправить ещё раз (${cooldown})` : "Отправить ещё раз"}
                 </button>
@@ -118,7 +118,7 @@ export default function LoginPage() {
           )}
 
           {info && (
-            <div className="text-sm text-violet-200 bg-violet-500/10 p-2.5 rounded-xl">{info}</div>
+            <div className="text-sm text-white/70 bg-white/5 p-2.5 rounded-xl">{info}</div>
           )}
           {err && <div className="text-sm text-red-300 bg-red-500/10 p-2.5 rounded-xl">{err}</div>}
 
@@ -147,12 +147,12 @@ export default function LoginPage() {
         <div className="text-sm text-center text-white/50 space-y-1">
           <div>
             Нет аккаунта?{" "}
-            <Link href="/auth/register" className="text-violet-400">
+            <Link href="/auth/register" className="text-white/60">
               Регистрация
             </Link>
           </div>
           <div>
-            <Link href="/auth/forgot" className="text-white/40 hover:text-violet-400 text-xs">
+            <Link href="/auth/forgot" className="text-white/40 hover:text-white/60 text-xs">
               Забыл пароль?
             </Link>
           </div>

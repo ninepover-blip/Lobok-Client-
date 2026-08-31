@@ -149,10 +149,10 @@ export default function Navbar() {
                     key={it.href}
                     href={it.href}
                     className={`flex items-start gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                      active(it.href) ? "bg-violet-500/15" : "hover:bg-white/5"
+                      active(it.href) ? "bg-white/10" : "hover:bg-white/5"
                     }`}
                   >
-                    <span className="text-violet-300 mt-0.5 shrink-0">{it.icon}</span>
+                    <span className="text-white/70 mt-0.5 shrink-0">{it.icon}</span>
                     <span className="min-w-0">
                       <span className="block text-sm text-white/90 font-medium">{it.label}</span>
                       <span className="block text-[11px] text-white/40">{it.desc}</span>
@@ -227,11 +227,11 @@ export default function Navbar() {
                   </div>
 
                   <Link href="/cabinet" className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors">
-                    <span className="text-violet-300 shrink-0"><IconKey size={15} /></span>
+                    <span className="text-white/70 shrink-0"><IconKey size={15} /></span>
                     <span className="text-sm text-white/90">Кабинет и ключи</span>
                   </Link>
                   <Link href={`/profile/${me.username}`} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5 transition-colors">
-                    <span className="text-violet-300 shrink-0"><IconUser size={15} /></span>
+                    <span className="text-white/70 shrink-0"><IconUser size={15} /></span>
                     <span className="text-sm text-white/90">Мой профиль</span>
                   </Link>
                   {isStaff && (
@@ -285,7 +285,7 @@ export default function Navbar() {
                 active(it.href) ? "bg-white/10 font-medium" : "hover:bg-white/5"
               }`}
             >
-              <span className="text-violet-300">{it.icon}</span>
+              <span className="text-white/70">{it.icon}</span>
               {it.label}
             </Link>
           ))}
@@ -300,7 +300,7 @@ export default function Navbar() {
                 active(it.href) ? "bg-white/10 font-medium" : "hover:bg-white/5"
               }`}
             >
-              <span className="text-violet-300">{it.icon}</span>
+              <span className="text-white/70">{it.icon}</span>
               {it.label}
             </Link>
           ))}
@@ -320,15 +320,15 @@ export default function Navbar() {
             <>
               <div className="my-1.5 border-t border-white/5" />
               <Link href="/cabinet" className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5">
-                <span className="text-violet-300"><IconKey size={15} /></span>
+                <span className="text-white/70"><IconKey size={15} /></span>
                 Кабинет и ключи
               </Link>
               <Link href={`/profile/${me.username}`} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/5">
-                <span className="text-violet-300"><IconUser size={15} /></span>
+                <span className="text-white/70"><IconUser size={15} /></span>
                 Мой профиль
               </Link>
               {isStaff && (
-                <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-violet-600/20 text-white">
+                <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/10 text-white">
                   <span className="text-red-400"><IconLock size={15} /></span>
                   {me.role === "ADMIN" ? "Админ-панель" : "Модерация"}
                 </Link>
