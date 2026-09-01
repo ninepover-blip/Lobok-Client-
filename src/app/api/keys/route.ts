@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getCurrentUser, generateKey } from "@/lib/auth";
+import { getAuthUserFromRequest, generateKey } from "@/lib/auth";
 
 export async function GET(req: NextRequest){
-  const me = await getCurrentUser();
+  const me = await getAuthUserFromRequest(req);
   if(!me) return NextResponse.json({error:"Auth"},{status:401});
   const url = new URL(req.url);
   const mine = url.searchParams.get("mine")==="1";
