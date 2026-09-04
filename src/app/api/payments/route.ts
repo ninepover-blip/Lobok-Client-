@@ -3,7 +3,6 @@ import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { METHODS, MethodId, PAY, TARIFFS, makeLabel, yoomoneyUrl } from "@/lib/payments";
 import { monoConfigured } from "@/lib/monobank";
-import { applyDiscount, checkPromo } from "@/lib/promo";
 import { onOrderCreated } from "@/lib/notify";
 import { rateLimit, clientIp } from "@/lib/rateLimit";
 
@@ -77,10 +76,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { keyType, method, promoCode } = (await req.json().catch(() => ({}))) as {
+  const { keyType, method } = (await req.json().catch(() => ({}))) as {
     keyType?: keyof typeof TARIFFS;
     method?: MethodId;
-    promoCode?: string;
   };
 
   const tariff = keyType && TARIFFS[keyType];
@@ -89,18 +87,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Выберите способ оплаты" }, { status: 400 });
   }
 
-  // --- промокод: скидку считаем на сервере, клиенту цену не доверяем ---
-  let amountRub = tariff.rub;
-  let amountUah = tariff.uah;
-  let promo: { id: string; code: string; discount: number } | null = null;
-
-  if (promoCode && promoCode.trim()) {
-    const res = await checkPromo(promoCode, me.id);
-    if (!res.ok) return NextResponse.json({ error: res.error }, { status: 400 });
-    promo = { id: res.promo.id, code: res.promo.code, discount: res.promo.discount };
-    amountRub = applyDiscount(tariff.rub, promo.discount);
-    amountUah = applyDiscount(tariff.uah, promo.discount);
-  }
+  const amountRub = tariff.rub;
+  const amountUah = tariff.uah;
 
   // --- идемпотентность: есть живой PENDING такой же -> возвращаем его ---
   await sweepExpired(me.id);
@@ -112,7 +100,6 @@ export async function POST(req: NextRequest) {
       status: "PENDING",
       amountRub,
       amountUah,
-      promoCode: promo?.code ?? null,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -128,11 +115,6 @@ export async function POST(req: NextRequest) {
         amountUah,
         label: makeLabel(),
         status: "PENDING",
-        promoId: promo?.id ?? null,
-        promoCode: promo?.code ?? null,
-        promoDiscount: promo?.discount ?? null,
-        fullAmountRub: promo ? tariff.rub : null,
-        fullAmountUah: promo ? tariff.uah : null,
       },
     });
 
@@ -144,22 +126,11 @@ export async function POST(req: NextRequest) {
       amountUah,
       methodTitle: METHOD_TITLES[method] || method,
       label: payment.label,
-      promo: promo?.code ?? null,
     });
   }
 
-  // Реквизиты/ссылка. Везде amountRub/amountUah — цена уже со скидкой.
+  // Реквизиты/ссылка.
   const instructions: Record<string, unknown> = { label: payment.label, reused: !!existing };
-  if (promo) {
-    instructions.promo = {
-      code: promo.code,
-      discount: promo.discount,
-      fullRub: tariff.rub,
-      fullUah: tariff.uah,
-      savedRub: tariff.rub - amountRub,
-      savedUah: tariff.uah - amountUah,
-    };
-  }
   if (method === "YOOMONEY") {
     instructions.payUrl = yoomoneyUrl(amountRub, payment.label, `${SITE}/cabinet?paid=${payment.label}`);
     instructions.note = "После оплаты ключ придёт автоматически в кабинет.";

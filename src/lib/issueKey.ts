@@ -1,7 +1,6 @@
 import prisma from "@/lib/prisma";
 import { generateKey } from "@/lib/auth";
 import { TARIFFS } from "@/lib/payments";
-import { redeemPromo } from "@/lib/promo";
 import { ensureReceiptNumber } from "@/lib/receipt";
 import { onOrderPaid, onOrderCancelled } from "@/lib/notify";
 
@@ -96,15 +95,6 @@ export async function issueKeyForPayment(paymentId: string): Promise<IssueResult
     where: { id: payment.id },
     data: { issuedKeyId: keyRecord.id },
   });
-
-  // --- промокод: фиксируем использование (после PAID, идемпотентно) ---
-  if (payment.promoId) {
-    try {
-      await redeemPromo({ promoId: payment.promoId, userId: payment.user.id, paymentId: payment.id });
-    } catch (e) {
-      console.warn("[issueKey] redeemPromo failed:", e);
-    }
-  }
 
   // --- номер чека (после оплаты), best-effort ---
   try {

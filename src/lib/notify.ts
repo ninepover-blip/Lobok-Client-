@@ -88,15 +88,13 @@ export function onOrderCreated(e: {
   amountUah: number;
   methodTitle: string;
   label: string;
-  promo?: string | null;
 }) {
-  const promoLine = e.promo ? `\n🏷 Промокод: <code>${esc(e.promo)}</code>` : "";
   return notifyAdmins(
     `📦 <b>Новый заказ</b>\n\n` +
       `👤 ${esc(e.username)}\n` +
       `📋 ${esc(e.tariffTitle)} — ${e.amountRub}₽ / ${e.amountUah}₴\n` +
       `💳 ${esc(e.methodTitle)}\n` +
-      `🔖 Метка: <code>${esc(e.label)}</code>${promoLine}\n\n` +
+      `🔖 Метка: <code>${esc(e.label)}</code>\n\n` +
       `Кнопки ниже: выдача после проверки перевода.`,
     paymentAdminKeyboard(e.paymentId),
   );
