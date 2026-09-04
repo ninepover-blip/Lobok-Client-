@@ -4,13 +4,45 @@ import { getCurrentUser } from "@/lib/auth";
 import { METHODS, MethodId, PAY, TARIFFS, makeLabel, yoomoneyUrl } from "@/lib/payments";
 import { monoConfigured } from "@/lib/monobank";
 import { applyDiscount, checkPromo } from "@/lib/promo";
-import { sendTelegramMessage } from "@/lib/telegram";
+import { onOrderCreated } from "@/lib/notify";
+import { rateLimit, clientIp } from "@/lib/rateLimit";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://lobok-client.vercel.app";
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
-const ADMIN_IDS = ["8618210982", "7290948132"];
 
-/** GET — мои заказы (или все, если админ). */
+/** Сколько живёт неоплаченный заказ, после чего авто-отменяется. */
+const ORDER_TTL_MS = 24 * 60 * 60 * 1000;
+
+const METHOD_TITLES: Record<string, string> = {
+  YOOMONEY: "ЮMoney",
+  CARD_RU: "Карта МИР",
+  MONO_UA: "Monobank",
+  IBAN_UA: "IBAN (Україна)",
+};
+
+/** Ленивая авто-отмена протухших PENDING-заказов (без cron). */
+async function sweepExpired(userId?: string) {
+  try {
+    const expired = await prisma.payment.findMany({
+      where: {
+        status: "PENDING",
+        ...(userId ? { userId } : {}),
+        createdAt: { lt: new Date(Date.now() - ORDER_TTL_MS) },
+      },
+      select: { id: true },
+      take: 50,
+    });
+    if (expired.length) {
+      await prisma.payment.updateMany({
+        where: { id: { in: expired.map((p) => p.id) }, status: "PENDING" },
+        data: { status: "CANCELLED", cancelReason: "Истекло время оплаты (24ч)", cancelledAt: new Date() },
+      });
+    }
+  } catch (e) {
+    console.warn("[payments] sweepExpired failed:", e);
+  }
+}
+
+/** GET — мои заказы (или все, если админ: ?all=1). */
 export async function GET(req: NextRequest) {
   const me = await getCurrentUser();
   if (!me) return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
@@ -19,6 +51,8 @@ export async function GET(req: NextRequest) {
   if (all && me.role !== "ADMIN") {
     return NextResponse.json({ error: "Только админы" }, { status: 403 });
   }
+
+  await sweepExpired(all ? undefined : me.id);
 
   const payments = await prisma.payment.findMany({
     where: all ? {} : { userId: me.id },
@@ -33,6 +67,15 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const me = await getCurrentUser();
   if (!me) return NextResponse.json({ error: "Войдите в аккаунт" }, { status: 401 });
+
+  // защита от спама заказами
+  const rl = rateLimit(`pay:${me.id}:${clientIp(req)}`, 5, 60_000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: `Слишком много заказов. Подожди ${rl.retryAfter} сек.` },
+      { status: 429 },
+    );
+  }
 
   const { keyType, method, promoCode } = (await req.json().catch(() => ({}))) as {
     keyType?: keyof typeof TARIFFS;
@@ -59,30 +102,54 @@ export async function POST(req: NextRequest) {
     amountUah = applyDiscount(tariff.uah, promo.discount);
   }
 
-  const label = makeLabel();
-  const payment = await prisma.payment.create({
-    data: {
+  // --- идемпотентность: есть живой PENDING такой же -> возвращаем его ---
+  await sweepExpired(me.id);
+  const existing = await prisma.payment.findFirst({
+    where: {
       userId: me.id,
       keyType: tariff.type,
       method,
+      status: "PENDING",
       amountRub,
       amountUah,
-      label,
-      status: "PENDING",
-      promoId: promo?.id ?? null,
       promoCode: promo?.code ?? null,
-      promoDiscount: promo?.discount ?? null,
-      fullAmountRub: promo ? tariff.rub : null,
-      fullAmountUah: promo ? tariff.uah : null,
     },
+    orderBy: { createdAt: "desc" },
   });
 
-  // Notify admins
-  notifyAdminsNewOrder(payment, me.username, tariff, method);
+  let payment = existing;
+  if (!payment) {
+    payment = await prisma.payment.create({
+      data: {
+        userId: me.id,
+        keyType: tariff.type,
+        method,
+        amountRub,
+        amountUah,
+        label: makeLabel(),
+        status: "PENDING",
+        promoId: promo?.id ?? null,
+        promoCode: promo?.code ?? null,
+        promoDiscount: promo?.discount ?? null,
+        fullAmountRub: promo ? tariff.rub : null,
+        fullAmountUah: promo ? tariff.uah : null,
+      },
+    });
 
-  // Реквизиты для ручных методов + ссылка для автоматического ЮMoney.
-  // Везде используем amountRub/amountUah — это цена уже со скидкой.
-  const instructions: Record<string, unknown> = { label };
+    void onOrderCreated({
+      paymentId: payment.id,
+      username: me.username,
+      tariffTitle: tariff.title,
+      amountRub,
+      amountUah,
+      methodTitle: METHOD_TITLES[method] || method,
+      label: payment.label,
+      promo: promo?.code ?? null,
+    });
+  }
+
+  // Реквизиты/ссылка. Везде amountRub/amountUah — цена уже со скидкой.
+  const instructions: Record<string, unknown> = { label: payment.label, reused: !!existing };
   if (promo) {
     instructions.promo = {
       code: promo.code,
@@ -94,46 +161,30 @@ export async function POST(req: NextRequest) {
     };
   }
   if (method === "YOOMONEY") {
-    instructions.payUrl = yoomoneyUrl(amountRub, label, `${SITE}/cabinet?paid=${label}`);
+    instructions.payUrl = yoomoneyUrl(amountRub, payment.label, `${SITE}/cabinet?paid=${payment.label}`);
     instructions.note = "После оплаты ключ придёт автоматически в кабинет.";
   } else if (method === "CARD_RU") {
     instructions.card = PAY.cardRu;
     instructions.amount = `${amountRub} ₽`;
-    instructions.note = `Перевод на карту МИР. В комментарии укажи метку ${label}, затем нажми «Я оплатил».`;
+    instructions.note = `Перевод на карту МИР. В комментарии укажи метку ${payment.label}, затем нажми «Я оплатил».`;
   } else if (method === "MONO_UA") {
     instructions.card = PAY.cardUa;
     instructions.amount = `${amountUah} ₴`;
     instructions.auto = monoConfigured();
     instructions.note = monoConfigured()
-      ? `Перевод на Monobank. Обязательно укажи метку ${label} в комментарии — ключ придёт автоматически.`
-      : `Перевод на Monobank. В комментарии укажи метку ${label}, затем нажми «Я оплатил».`;
+      ? `Перевод на Monobank. Обязательно укажи метку ${payment.label} в комментарии — ключ придёт автоматически.`
+      : `Перевод на Monobank. В комментарии укажи метку ${payment.label}, затем нажми «Я оплатил».`;
   } else if (method === "IBAN_UA") {
     instructions.iban = PAY.iban;
     instructions.recipient = PAY.ibanName;
     instructions.tax = PAY.ibanTax;
-    instructions.purpose = `${PAY.ibanPurpose} ${label}`;
+    instructions.purpose = `${PAY.ibanPurpose} ${payment.label}`;
     instructions.amount = `${amountUah} ₴`;
     instructions.auto = monoConfigured();
     instructions.note = monoConfigured()
-      ? `Оплата по IBAN. Метку ${label} в назначении платежа указывать обязательно — ключ придёт автоматически.`
-      : `Оплата по IBAN. В назначении платежа обязательно укажи метку ${label}.`;
+      ? `Оплата по IBAN. Метку ${payment.label} в назначении платежа указывать обязательно — ключ придёт автоматически.`
+      : `Оплата по IBAN. В назначении платежа обязательно укажи метку ${payment.label}.`;
   }
 
   return NextResponse.json({ ok: true, payment, instructions });
-}
-
-async function notifyAdminsNewOrder(payment: any, username: string, tariff: any, method: string) {
-  if (!BOT_TOKEN) return;
-  const methodTitle = METHODS[method as MethodId]?.title || method;
-  const msg =
-    `📦 *Новый заказ!*\n\n` +
-    `Пользователь: ${username}\n` +
-    `Тариф: ${tariff.title} (${payment.amountRub}₽ / ${payment.amountUah}₴)\n` +
-    `Способ: ${methodTitle}\n` +
-    `Метка: \`${payment.label}\`\n` +
-    `Статус: ${payment.status}\n\n` +
-    `[Открыть админку](${SITE}/admin)`;
-  for (const id of ADMIN_IDS) {
-    try { await sendTelegramMessage(id, msg); } catch {}
-  }
 }

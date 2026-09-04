@@ -554,6 +554,7 @@ export default function AdminPage() {
                   <option value="USER">USER</option>
                   <option value="MODERATOR">MODERATOR</option>
                   <option value="ADMIN">ADMIN</option>
+                  <option value="BAN">BAN</option>
                 </select>
               </div>
             ))}

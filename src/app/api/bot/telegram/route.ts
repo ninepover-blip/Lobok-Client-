@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { sendTelegramMessage, generate2FACode, tgApi } from "@/lib/telegram";
+import { handlePaymentAdminCallback } from "@/lib/paymentAdminBot";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://lobok-client.vercel.app";
@@ -91,6 +92,17 @@ export async function POST(req: NextRequest) {
     const cq = body.callback_query;
     const chatId = String(cq.message?.chat?.id ?? cq.from.id);
     const data: string = cq.data || "";
+
+    // --- админ-кнопки оплаты: pay:confirm:<id> / pay:cancel:<id> ---
+    if (data.startsWith("pay:")) {
+      const done = await handlePaymentAdminCallback({
+        data,
+        chatId,
+        callbackId: cq.id,
+        messageId: cq.message?.message_id,
+      });
+      if (done) return NextResponse.json({ ok: true });
+    }
 
     // --- AI support flow intercept ---
     if (data === "ai_support" || data === "ai_cancel") {

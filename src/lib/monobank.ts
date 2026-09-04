@@ -1,85 +1,56 @@
 /**
- * Монобанк — автоматическая оплата для Украины.
+ * Monobank: приём уведомлений о пополнениях (webhook "StatementItem").
  *
- * Работает на personal API (https://api.monobank.ua/docs/index.html):
- * банк присылает вебхук на каждое движение по счёту, мы ищем среди входящих
- * переводов тот, в комментарии которого есть метка заказа (LBxxxxxxxxxxxx).
+ * У Monobank нет подписи webhook'ов — секретность обеспечивается
+ * неугадываемым URL с токеном:
+ *   https://SITE/api/payments/monobank?token=MONOBANK_WEBHOOK_SECRET
+ * Токен задаётся в env и проверяется сверкой в route.
  *
- * Токен берётся в личном кабинете https://api.monobank.ua/ (кнопка «Отримати токен»).
- * Внешние библиотеки не нужны — это обычные HTTP-запросы.
+ * Как включить:
+ *  1. Задать в Vercel env: MONOBANK_TOKEN (токен из monobank.ua/api),
+ *     MONOBANK_WEBHOOK_SECRET (любая длинная случайная строка).
+ *  2. Один раз выставить webhook (см. install_webhook.sh или ЧИТАЙ_МЕНЯ.md).
  */
 
-const MONO_API = "https://api.monobank.ua";
+export function monoConfigured(): boolean {
+  return !!(process.env.MONOBANK_TOKEN && process.env.MONOBANK_WEBHOOK_SECRET);
+}
 
-/** Валюта UAH по ISO 4217. */
-export const UAH = 980;
+export function monoTokenOk(token: string | null): boolean {
+  const secret = process.env.MONOBANK_WEBHOOK_SECRET || "";
+  return !!secret && !!token && token === secret;
+}
+
+/** Вытаскивает платёжную метку LBXXXXXXXXXXXX из текста перевода. */
+export function extractLabel(...texts: Array<string | null | undefined>): string | null {
+  for (const t of texts) {
+    if (!t) continue;
+    const m = String(t).toUpperCase().match(/\bLB[0-9A-F]{12}\b/);
+    if (m) return m[0];
+  }
+  return null;
+}
 
 export type MonoStatementItem = {
   id: string;
   time: number;
   description?: string;
   comment?: string;
-  amount: number; // в копейках; > 0 — приход
+  amount: number; // в копейках, пополнение > 0
+  currencyCode: number; // 980 = UAH
   operationAmount?: number;
-  currencyCode: number;
-  balance?: number;
-  hold?: boolean;
 };
 
-export type MonoWebhook = {
-  type?: string;
-  data?: { account?: string; statementItem?: MonoStatementItem };
-};
-
-function token(): string {
-  return process.env.MONOBANK_TOKEN || "";
-}
-
-export function monoConfigured(): boolean {
-  return Boolean(token());
-}
-
-/**
- * Регистрирует вебхук в монобанке.
- * Банк сначала делает GET на этот URL и ждёт ровно 200 — иначе не включит.
- */
-export async function setMonoWebhook(url: string) {
-  if (!token()) return { ok: false, error: "MONOBANK_TOKEN не задан" };
-  const r = await fetch(`${MONO_API}/personal/webhook`, {
-    method: "POST",
-    headers: { "X-Token": token(), "Content-Type": "application/json" },
-    body: JSON.stringify({ webHookUrl: url }),
-  });
-  const text = await r.text();
-  return r.ok
-    ? { ok: true as const, response: text }
-    : { ok: false as const, error: `mono ${r.status}: ${text}` };
-}
-
-/** Информация о клиенте — заодно показывает текущий webHookUrl. */
-export async function monoClientInfo() {
-  if (!token()) return { ok: false as const, error: "MONOBANK_TOKEN не задан" };
-  const r = await fetch(`${MONO_API}/personal/client-info`, {
-    headers: { "X-Token": token() },
-  });
-  if (!r.ok) return { ok: false as const, error: `mono ${r.status}: ${await r.text()}` };
-  return { ok: true as const, info: await r.json() };
-}
-
-/**
- * Достаёт метку заказа (LB + 12 hex) из комментария или описания перевода.
- * Плательщики часто пишут метку в разном регистре и с лишним текстом.
- */
-export function extractLabel(item: MonoStatementItem): string | null {
-  const haystack = `${item.comment ?? ""} ${item.description ?? ""}`.toUpperCase();
-  const m = haystack.match(/LB[0-9A-F]{12}/);
-  return m ? m[0] : null;
-}
-
-/**
- * Проверяет, что это входящий зачисленный платёж в гривне.
- * hold=true — деньги ещё не зачислены, ключ выдавать рано.
- */
-export function isIncomingUah(item: MonoStatementItem): boolean {
-  return item.amount > 0 && item.currencyCode === UAH && item.hold !== true;
+/** Достаёт StatementItem из тела webhook'a monobank. */
+export function parseMonoWebhook(body: unknown): MonoStatementItem | null {
+  try {
+    const b = body as {
+      type?: string;
+      data?: { statementItem?: MonoStatementItem };
+    };
+    if (!b || b.type !== "StatementItem" || !b.data?.statementItem) return null;
+    return b.data.statementItem;
+  } catch {
+    return null;
+  }
 }

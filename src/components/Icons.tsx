@@ -250,6 +250,12 @@ export function RoleBadge({ role }: { role: string }) {
         <VerifiedBadge role="MODERATOR" size={13} /> MODERATOR
       </span>
     );
+  if (role === "BAN")
+    return (
+      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-red-400 bg-red-500/10">
+        BAN
+      </span>
+    );
   return (
     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium bg-white/10 text-white/60">
       USER

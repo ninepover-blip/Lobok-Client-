@@ -1,143 +1,203 @@
 import prisma from "@/lib/prisma";
 import { generateKey } from "@/lib/auth";
-import { sendTelegramMessage } from "@/lib/telegram";
 import { TARIFFS } from "@/lib/payments";
 import { redeemPromo } from "@/lib/promo";
+import { ensureReceiptNumber } from "@/lib/receipt";
+import { onOrderPaid, onOrderCancelled } from "@/lib/notify";
 
 /**
- * Помечает платёж оплаченным и выдаёт ключ владельцу.
- * Идемпотентно: повторный вызов вернёт уже выданный ключ.
+ * Выдача и отмена ключей за заказы.
+ *
+ * issueKeyForPayment идемпотентна: повторный вызов (дубль webhook'а,
+ * повторный клик админа) вернёт тот же ключ, а не выдаст новый.
+ * Гонка двух одновременных подтверждений защищена атомарным
+ * updateMany по (id, status = PENDING).
  */
-export async function issueKeyForPayment(paymentId: string, operationId?: string) {
+
+export type IssueResult = { key: string; keyId: string } | { error: string };
+export type CancelResult =
+  | { payment: unknown; revokedKey: string | null }
+  | { error: string };
+
+const METHOD_TITLES: Record<string, string> = {
+  YOOMONEY: "ЮMoney",
+  CARD_RU: "Карта МИР",
+  MONO_UA: "Monobank",
+  IBAN_UA: "IBAN (Україна)",
+};
+
+const AUTO_METHODS = new Set(["YOOMONEY", "MONO_UA", "IBAN_UA"]);
+
+/** Выдать ключ за оплаченный заказ. Вызывают: админ-confirm, webhook'и ЮMoney/Monobank. */
+export async function issueKeyForPayment(paymentId: string): Promise<IssueResult> {
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
-    include: { user: true },
+    include: { user: { select: { id: true, username: true } } },
   });
-  if (!payment) return { error: "Платёж не найден" as const };
+  if (!payment) return { error: "Заказ не найден" };
 
-  if (payment.status === "PAID" && payment.issuedKeyId) {
+  // --- идемпотентность: уже выдан -> возвращаем существующий ключ ---
+  if (payment.issuedKeyId) {
     const existing = await prisma.licenseKey.findUnique({ where: { id: payment.issuedKeyId } });
-    return { ok: true as const, key: existing, payment };
+    if (existing) return { key: existing.key, keyId: existing.id };
+  }
+  if (payment.status !== "PENDING") {
+    return { error: `Заказ уже обработан (статус ${payment.status})` };
   }
 
   const tariff = TARIFFS[payment.keyType as keyof typeof TARIFFS];
-  const days = tariff?.days ?? null;
-  const expiresAt = days ? new Date(Date.now() + days * 86400000) : null;
+  if (!tariff) return { error: "Неизвестный тариф заказа" };
 
-  const key = await prisma.licenseKey.create({
-    data: {
-      key: generateKey(),
-      type: payment.keyType,
-      status: "ACTIVE",
-      durationDays: days,
-      priceRub: payment.amountRub,
-      priceUah: payment.amountUah,
-      ownerId: payment.userId,
-      ownerUsername: payment.user?.username ?? null,
-      activatedAt: new Date(),
-      expiresAt,
-    },
+  // --- атомарный переход PENDING -> PAID (анти-гонка webhook'ов) ---
+  const claimed = await prisma.payment.updateMany({
+    where: { id: payment.id, status: "PENDING" },
+    data: { status: "PAID", paidAt: new Date() },
   });
+  if (claimed.count === 0) {
+    const fresh = await prisma.payment.findUnique({ where: { id: payment.id } });
+    if (fresh?.issuedKeyId) {
+      const existing = await prisma.licenseKey.findUnique({ where: { id: fresh.issuedKeyId } });
+      if (existing) return { key: existing.key, keyId: existing.id };
+    }
+    return { error: "Заказ уже обрабатывается другим запросом" };
+  }
+
+  // --- создаём ключ ---
+  let keyRecord;
+  for (let i = 0; i < 5; i++) {
+    try {
+      keyRecord = await prisma.licenseKey.create({
+        data: {
+          key: generateKey(),
+          type: payment.keyType,
+          durationDays: tariff.days,
+          priceRub: payment.amountRub,
+          priceUah: payment.amountUah,
+          status: "UNUSED",
+          ownerId: payment.user.id,
+          ownerUsername: payment.user.username,
+        },
+      });
+      break;
+    } catch {
+      // коллизия уникального ключа — перегенерируем
+    }
+  }
+  if (!keyRecord) {
+    // откатываем статус, чтобы не потерять заказ
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: "PENDING", paidAt: null },
+    });
+    return { error: "Не удалось создать ключ — попробуйте ещё раз" };
+  }
 
   await prisma.payment.update({
     where: { id: payment.id },
-    data: {
-      status: "PAID",
-      paidAt: new Date(),
-      issuedKeyId: key.id,
-      operationId: operationId ?? payment.operationId,
-    },
+    data: { issuedKeyId: keyRecord.id },
   });
 
-  // Промокод засчитываем только после фактической оплаты, а не при создании
-  // заказа — иначе брошенные корзины съедали бы лимит использований.
+  // --- промокод: фиксируем использование (после PAID, идемпотентно) ---
   if (payment.promoId) {
-    await redeemPromo({
-      promoId: payment.promoId,
-      userId: payment.userId,
+    try {
+      await redeemPromo({ promoId: payment.promoId, userId: payment.user.id, paymentId: payment.id });
+    } catch (e) {
+      console.warn("[issueKey] redeemPromo failed:", e);
+    }
+  }
+
+  // --- номер чека (после оплаты), best-effort ---
+  try {
+    await ensureReceiptNumber({ ...payment, status: "PAID" });
+  } catch (e) {
+    console.warn("[issueKey] ensureReceiptNumber failed:", e);
+  }
+
+  // --- уведомления, best-effort ---
+  try {
+    await onOrderPaid({
+      userId: payment.user.id,
+      username: payment.user.username,
+      tariffTitle: tariff.title,
+      key: keyRecord.key,
       paymentId: payment.id,
+      methodTitle: METHOD_TITLES[payment.method] || payment.method,
+      auto: AUTO_METHODS.has(payment.method),
     });
+  } catch (e) {
+    console.warn("[issueKey] notify failed:", e);
   }
 
-  if (payment.user?.telegramId) {
-    await sendTelegramMessage(
-      payment.user.telegramId,
-      `✅ Оплата получена!\n\nТвой ключ:\n<code>${key.key}</code>\n\n` +
-        `Тариф: ${tariff?.title ?? payment.keyType}\n` +
-        (payment.promoCode
-          ? `Промокод: ${payment.promoCode} (−${payment.promoDiscount}%)\n`
-          : "") +
-        `Действует: ${expiresAt ? `до ${expiresAt.toLocaleDateString("ru-RU")}` : "навсегда"}`,
-    );
-  }
-
-  return { ok: true as const, key, payment };
+  return { key: keyRecord.key, keyId: keyRecord.id };
 }
 
-/**
- * Отмена заказа. Работает и для уже оплаченных покупок:
- * выданный ключ отзывается (REVOKED), заказ помечается CANCELLED.
- * Идемпотентно — повторный вызов не ломает данные.
- */
+/** Отменить заказ. Если был выдан ключ — отзывает его. Идемпотентно. */
 export async function cancelPayment(
   paymentId: string,
-  opts: { byUserId?: string; reason?: string } = {},
-) {
+  opts: { byUserId?: string; reason?: string; byAdmin?: boolean } = {},
+): Promise<CancelResult> {
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
-    include: { user: true },
+    include: { user: { select: { id: true, username: true } } },
   });
-  if (!payment) return { error: "Заказ не найден" as const };
-  if (payment.status === "CANCELLED") {
-    return { ok: true as const, payment, alreadyCancelled: true };
-  }
+  if (!payment) return { error: "Заказ не найден" };
+  if (payment.status === "CANCELLED") return { payment, revokedKey: null };
 
-  // если ключ уже был выдан — отзываем его
   let revokedKey: string | null = null;
-  if (payment.issuedKeyId) {
+
+  if (payment.status === "PAID" && payment.issuedKeyId) {
     const key = await prisma.licenseKey.findUnique({ where: { id: payment.issuedKeyId } });
     if (key && key.status !== "REVOKED") {
       await prisma.licenseKey.update({
         where: { id: key.id },
-        data: { status: "REVOKED" },
+        data: {
+          status: "REVOKED",
+          revokedAt: new Date(),
+          revokedReason: opts.reason || "Заказ отменён",
+        },
       });
       revokedKey = key.key;
+    } else if (key) {
+      revokedKey = key.key;
     }
-  }
-
-  // Заказ отменён — возвращаем использование промокода обратно:
-  // и лимит кода, и право этого пользователя применить его ещё раз.
-  const redemption = await prisma.promoRedemption.findUnique({
-    where: { paymentId: payment.id },
-  });
-  if (redemption) {
-    await prisma.$transaction([
-      prisma.promoRedemption.delete({ where: { id: redemption.id } }),
-      prisma.promo.update({
-        where: { id: redemption.promoId },
-        data: { uses: { decrement: 1 } },
-      }),
-    ]);
   }
 
   const updated = await prisma.payment.update({
     where: { id: payment.id },
     data: {
       status: "CANCELLED",
-      cancelledById: opts.byUserId ?? null,
-      cancelReason: opts.reason ?? null,
+      cancelledById: opts.byUserId || null,
+      cancelReason: opts.reason || null,
       cancelledAt: new Date(),
     },
   });
 
-  if (payment.user?.telegramId) {
-    await sendTelegramMessage(
-      payment.user.telegramId,
-      `❌ Заказ <code>${payment.label}</code> отменён.` +
-        (revokedKey ? `\n\nКлюч <code>${revokedKey}</code> отозван и больше не действует.` : "") +
-        (opts.reason ? `\n\nПричина: ${opts.reason}` : ""),
-    );
+  try {
+    const tariff = TARIFFS[payment.keyType as keyof typeof TARIFFS];
+    await onOrderCancelled({
+      userId: payment.user.id,
+      username: payment.user.username,
+      tariffTitle: tariff?.title || payment.keyType,
+      label: payment.label,
+      byAdmin: !!opts.byAdmin,
+      revokedKey,
+      reason: opts.reason || null,
+    });
+  } catch (e) {
+    console.warn("[cancelPayment] notify failed:", e);
   }
 
-  return { ok: true as const, payment: updated, revokedKey };
+  return { payment: updated, revokedKey };
+}
+
+/** Отозвать ключ напрямую (для админки). */
+export async function revokeKey(keyId: string, reason?: string) {
+  const key = await prisma.licenseKey.findUnique({ where: { id: keyId } });
+  if (!key) return { error: "Ключ не найден" };
+  if (key.status === "REVOKED") return { ok: true, already: true };
+  await prisma.licenseKey.update({
+    where: { id: keyId },
+    data: { status: "REVOKED", revokedAt: new Date(), revokedReason: reason || null },
+  });
+  return { ok: true };
 }
