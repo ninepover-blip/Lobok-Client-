@@ -71,6 +71,7 @@ export default function Cabinet() {
   const [payerName, setPayerName] = useState("");
   const [paymentTime, setPaymentTime] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [fieldErrs, setFieldErrs] = useState<{ receipt?: string; payer?: string; time?: string }>({});
   const fileRef = useRef<HTMLInputElement>(null);
 
 
@@ -243,6 +244,7 @@ export default function Cabinet() {
     setReceiptPreview("");
     setPayerName("");
     setPaymentTime("");
+    setFieldErrs({});
   }
 
 
@@ -286,32 +288,36 @@ export default function Cabinet() {
 
 
   async function submitPaid() {
-    if (!order?.payment?.id || submitting) return;
+    if (!order?.payment?.id || submitting || order.claimed) return;
     setBuyErr("");
 
-    const hasReceiptData = receiptPreview || payerName.trim() || paymentTime;
-    if (payerName.trim() && payerName.trim().length < 5) {
-      return setBuyErr("ФИО слишком короткое (минимум 5 символов)");
+    const fe: { receipt?: string; payer?: string; time?: string } = {};
+    if (!receiptPreview) fe.receipt = "Приложи скриншот перевода — без него админ не сможет проверить оплату";
+    if (!payerName.trim()) fe.payer = "Укажи ФИО плательщика";
+    else if (payerName.trim().length < 5) fe.payer = "ФИО слишком короткое (минимум 5 символов)";
+    if (!paymentTime) fe.time = "Укажи дату и время оплаты";
+    setFieldErrs(fe);
+    if (fe.receipt || fe.payer || fe.time) {
+      setBuyErr("Заполни все обязательные поля чека — они отмечены красным");
+      return;
     }
 
     setSubmitting(true);
     try {
-      if (hasReceiptData) {
-        const r = await fetch("/api/orders/receipt", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            paymentId: order.payment.id,
-            receiptData: receiptPreview || null,
-            payerName: payerName.trim() || null,
-            paymentTime: paymentTime || null,
-          }),
-        });
-        const d = await r.json();
-        if (!r.ok || !d.ok) {
-          setBuyErr(d.error || "Не удалось отправить чек");
-          return;
-        }
+      const r = await fetch("/api/orders/receipt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentId: order.payment.id,
+          receiptData: receiptPreview || null,
+          payerName: payerName.trim() || null,
+          paymentTime: paymentTime || null,
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok || !d.ok) {
+        setBuyErr(d.error || "Не удалось отправить чек");
+        return;
       }
 
       const r2 = await fetch(`/api/payments/${order.payment.id}`, {
@@ -324,7 +330,8 @@ export default function Cabinet() {
         setBuyErr(d2.error || "Ошибка отправки заявки");
         return;
       }
-      flash(d2.message || "Заявка отправлена. Админ проверит перевод и выдаст ключ.");
+      setOrder((o: any) => ({ ...o, claimed: true }));
+      flash("Заявка отправлена! Админ проверит перевод и выдаст ключ.");
     } catch {
       setBuyErr("Ошибка сети — попробуй ещё раз");
     } finally {
@@ -775,53 +782,123 @@ export default function Cabinet() {
                   )}
                 </div>
 
-                <div className="rounded-xl bg-white/[0.04] border border-white/10 p-4 space-y-2.5">
-                  <div className="text-xs font-bold text-white/70">
-                    Чек об оплате <span className="text-white/30 font-normal">(ускоряет выдачу)</span>
+                {order.claimed && (
+                  <div className="rounded-xl bg-violet-500/10 border border-violet-500/30 p-4 space-y-1.5">
+                    <div className="text-sm font-bold text-violet-200 flex items-center gap-2">
+                      <IconClock size={16} /> Заявка отправлена — жди подтверждения
+                    </div>
+                    <p className="text-xs text-white/50 leading-relaxed">
+                      Чек у админа. Как только он подтвердит перевод, эта страница сама
+                      переключится на «Готово» и покажет ключ. Обычно это до 30 минут.
+                      Можно закрыть страницу — статус виден в списке «Мои заказы» ниже.
+                    </p>
                   </div>
-                  <div
-                    onClick={() => fileRef.current?.click()}
-                    className="rounded-xl border-2 border-dashed border-white/10 hover:border-violet-500/40 transition p-4 text-center cursor-pointer overflow-hidden"
-                  >
-                    {receiptPreview ? (
-                      <img src={receiptPreview} alt="Чек" className="max-h-48 mx-auto rounded-lg" />
-                    ) : (
-                      <div className="text-white/35 text-xs space-y-1 py-2">
-                        <div className="text-2xl">📎</div>
-                        <div>Нажми, чтобы прикрепить скриншот перевода</div>
-                        <div className="text-[10px] text-white/25">PNG, JPG — до 5 МБ</div>
+                )}
+
+                {!order.claimed && order.instructions?.payUrl && (
+                  <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/25 p-4 space-y-1.5">
+                    <div className="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                      <IconClock size={16} /> Автоматическая оплата
+                    </div>
+                    <p className="text-xs text-white/50 leading-relaxed">
+                      Ничего отправлять не нужно: после оплаты по кнопке «Перейти к оплате»
+                      ключ появится здесь автоматически в течение пары минут.
+                      Не закрывай страницу или просто загляни позже в «Мои заказы».
+                    </p>
+                  </div>
+                )}
+
+                {!order.claimed && !order.instructions?.payUrl && (
+                  <div className="rounded-xl bg-white/[0.04] border border-white/10 p-4 space-y-2.5">
+                    <div className="text-xs font-bold text-white/70">
+                      Чек об оплате — <span className="text-red-300">все поля обязательны</span>
+                    </div>
+                    <p className="text-[11px] text-white/40 leading-relaxed">
+                      Без скриншота, ФИО и даты оплаты админ не сможет найти твой перевод и
+                      заявка не уйдёт.
+                    </p>
+                    <div>
+                      <div
+                        onClick={() => fileRef.current?.click()}
+                        className={`rounded-xl border-2 border-dashed transition p-4 text-center cursor-pointer overflow-hidden ${
+                          fieldErrs.receipt
+                            ? "border-red-500/60 bg-red-500/5"
+                            : "border-white/10 hover:border-violet-500/40"
+                        }`}
+                      >
+                        {receiptPreview ? (
+                          <img src={receiptPreview} alt="Чек" className="max-h-48 mx-auto rounded-lg" />
+                        ) : (
+                          <div className="text-white/35 text-xs space-y-1 py-2">
+                            <div className="text-2xl">📎</div>
+                            <div>Нажми, чтобы прикрепить скриншот перевода *</div>
+                            <div className="text-[10px] text-white/25">PNG, JPG — до 5 МБ</div>
+                          </div>
+                        )}
+                        <input
+                          ref={fileRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            handleReceiptFile(e);
+                            setFieldErrs((p) => ({ ...p, receipt: undefined }));
+                          }}
+                          hidden
+                        />
                       </div>
-                    )}
-                    <input ref={fileRef} type="file" accept="image/*" onChange={handleReceiptFile} hidden />
+                      {fieldErrs.receipt && <p className="text-[11px] text-red-300 mt-1 px-1">{fieldErrs.receipt}</p>}
+                    </div>
+                    <div>
+                      <input
+                        value={payerName}
+                        onChange={(e) => {
+                          setPayerName(e.target.value);
+                          setFieldErrs((p) => ({ ...p, payer: undefined }));
+                        }}
+                        placeholder="ФИО плательщика *"
+                        className={`w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border text-sm ${
+                          fieldErrs.payer ? "border-red-500/60" : "border-white/10"
+                        }`}
+                      />
+                      {fieldErrs.payer && <p className="text-[11px] text-red-300 mt-1 px-1">{fieldErrs.payer}</p>}
+                    </div>
+                    <div>
+                      <input
+                        type="datetime-local"
+                        value={paymentTime}
+                        onChange={(e) => {
+                          setPaymentTime(e.target.value);
+                          setFieldErrs((p) => ({ ...p, time: undefined }));
+                        }}
+                        className={`w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border text-sm [color-scheme:dark] ${
+                          fieldErrs.time ? "border-red-500/60" : "border-white/10"
+                        }`}
+                      />
+                      {fieldErrs.time
+                        ? <p className="text-[11px] text-red-300 mt-1 px-1">{fieldErrs.time}</p>
+                        : <p className="text-[10px] text-white/30 mt-1 px-1">Дата и время оплаты *</p>}
+                    </div>
                   </div>
-                  <input
-                    value={payerName}
-                    onChange={(e) => setPayerName(e.target.value)}
-                    placeholder="ФИО плательщика"
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm"
-                  />
-                  <input
-                    type="datetime-local"
-                    value={paymentTime}
-                    onChange={(e) => setPaymentTime(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-white/[0.04] border border-white/10 text-sm [color-scheme:dark]"
-                  />
-                </div>
+                )}
 
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setBuyStep(1)}
-                    className="px-5 py-3 rounded-full bg-white/5 border border-white/10 text-white/60 text-sm font-bold"
-                  >
-                    Назад
-                  </button>
-                  <button
-                    onClick={submitPaid}
-                    disabled={submitting}
-                    className="flex-1 min-w-[140px] py-3 rounded-full bg-white text-black font-bold disabled:opacity-50"
-                  >
-                    {submitting ? "Отправка…" : "Я оплатил"}
-                  </button>
+                  {!order.claimed && (
+                    <button
+                      onClick={() => setBuyStep(1)}
+                      className="px-5 py-3 rounded-full bg-white/5 border border-white/10 text-white/60 text-sm font-bold"
+                    >
+                      Назад
+                    </button>
+                  )}
+                  {!order.claimed && !order.instructions?.payUrl && (
+                    <button
+                      onClick={submitPaid}
+                      disabled={submitting}
+                      className="flex-1 min-w-[140px] py-3 rounded-full bg-white text-black font-bold disabled:opacity-50"
+                    >
+                      {submitting ? "Отправка…" : "Я оплатил"}
+                    </button>
+                  )}
                   <button
                     onClick={() => cancelOrder()}
                     className="px-5 py-3 rounded-full bg-white/5 border border-white/10 text-white/60 hover:text-red-300 hover:border-red-500/40 text-sm font-bold"
