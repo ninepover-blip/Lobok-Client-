@@ -5,8 +5,6 @@ import {
   IconCheck,
   IconClock,
   IconCopy,
-  IconDiscord,
-  IconGift,
   IconKey,
   IconLock,
   IconTelegram,
@@ -46,7 +44,6 @@ const BUY_STEPS = ["Тариф", "Способ оплаты", "Оплата", "�
 export default function Cabinet() {
   const [me, setMe] = useState<Me | null>(null);
   const [keys, setKeys] = useState<any[]>([]);
-  const [free, setFree] = useState<any>(null);
   const [tg, setTg] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
   const [form, setForm] = useState({
@@ -54,7 +51,6 @@ export default function Cabinet() {
     oldPassword: "",
     newPassword: "",
     avatarUrl: "",
-    discordConfirmed: false,
   });
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
@@ -63,10 +59,6 @@ export default function Cabinet() {
   const [buyErr, setBuyErr] = useState("");
   const [order, setOrder] = useState<any>(null);
   const [linking, setLinking] = useState<any>(null);
-  const [promoInput, setPromoInput] = useState("");
-  const [promo, setPromo] = useState<any>(null);
-  const [promoErr, setPromoErr] = useState("");
-  const [promoBusy, setPromoBusy] = useState(false);
   const [receiptPreview, setReceiptPreview] = useState("");
   const [payerName, setPayerName] = useState("");
   const [paymentTime, setPaymentTime] = useState("");
@@ -96,7 +88,6 @@ export default function Cabinet() {
     loadKeys();
     loadPayments();
     loadTg();
-    fetch("/api/free-key/claim").then((r) => r.json()).then(setFree);
   }, [loadKeys, loadPayments, loadTg]);
 
 
@@ -148,23 +139,6 @@ export default function Cabinet() {
   }
 
 
-  async function claimFree() {
-    if (!form.discordConfirmed) return flash("Подтверди подписку на Discord", true);
-    const res = await fetch("/api/free-key/claim", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ discordConfirmed: true }),
-    });
-    const d = await res.json();
-    if (!res.ok) flash(d.error, true);
-    else {
-      flash(`Ключ выдан: ${d.key}`);
-      loadKeys();
-      fetch("/api/free-key/claim").then((r) => r.json()).then(setFree);
-    }
-  }
-
-
   async function linkTelegram() {
     const r = await fetch("/api/telegram/link", { method: "POST" });
     const d = await r.json();
@@ -206,37 +180,6 @@ export default function Cabinet() {
   }
 
 
-  async function checkPromoCode() {
-    const code = promoInput.trim();
-    if (!code) return;
-    setPromoBusy(true);
-    setPromoErr("");
-    try {
-      const r = await fetch("/api/promo/check", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, keyType: buy.type }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok || !d.ok) {
-        setPromo(null);
-        setPromoErr(d.error || "Промокод не подошёл");
-        return;
-      }
-      setPromo(d);
-    } finally {
-      setPromoBusy(false);
-    }
-  }
-
-
-  function clearPromo() {
-    setPromo(null);
-    setPromoInput("");
-    setPromoErr("");
-  }
-
-
   function resetBuy() {
     setOrder(null);
     setBuyStep(0);
@@ -256,16 +199,10 @@ export default function Cabinet() {
       body: JSON.stringify({
         keyType: buy.type,
         method: buy.method,
-        promoCode: promo?.code || undefined,
       }),
     });
     const d = await r.json();
     if (!r.ok) {
-      if (promo) {
-        setPromo(null);
-        setPromoErr(d.error || "");
-        setBuyStep(0);
-      }
       setBuyErr(d.error || "Ошибка создания заказа");
       return;
     }
@@ -370,13 +307,9 @@ export default function Cabinet() {
   const tariff = TARIFFS.find((t) => t.id === buy.type)!;
   const method = METHODS.find((m) => m.id === buy.method)!;
 
-
-  const off = (n: number) =>
-    promo ? Math.max(1, Math.floor(n * (1 - promo.discount / 100))) : n;
-  const payRub = off(tariff.rub);
-  const payUah = off(tariff.uah);
+  const payRub = tariff.rub;
+  const payUah = tariff.uah;
   const payNow = method.cur === "₽" ? `${payRub}₽` : `${payUah}₴`;
-  const payWas = method.cur === "₽" ? `${tariff.rub}₽` : `${tariff.uah}₴`;
 
 
   const currentStep = order?.done ? 3 : buyStep;
@@ -605,72 +538,12 @@ export default function Cabinet() {
                       }`}
                     >
                       <div className="font-bold text-sm">{t.title}</div>
-                      {promo ? (
-                        <div className="text-xs">
-                          <span className="line-through text-white/30">
-                            {t.rub}₽ / {t.uah}₴
-                          </span>{" "}
-                          <span className="text-emerald-300 font-bold">
-                            {off(t.rub)}₽ / {off(t.uah)}₴
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="text-xs text-white/50">
-                          {t.rub}₽ / {t.uah}₴
-                        </div>
-                      )}
+                      <div className="text-xs text-white/50">
+                        {t.rub}₽ / {t.uah}₴
+                      </div>
                       <div className="text-[10px] text-white/30 mt-0.5">{t.sub}</div>
                     </button>
                   ))}
-                </div>
-
-                <div className="space-y-2">
-                  {!promo ? (
-                    <>
-                      <div className="flex gap-2">
-                        <input
-                          value={promoInput}
-                          onChange={(e) => {
-                            setPromoInput(e.target.value.toUpperCase());
-                            setPromoErr("");
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") checkPromoCode();
-                          }}
-                          placeholder="Промокод, если есть"
-                          className={`flex-1 px-3 py-2.5 rounded-xl bg-white/[0.04] border text-sm font-mono uppercase tracking-wide placeholder:font-sans placeholder:normal-case placeholder:tracking-normal ${
-                            promoErr ? "border-red-500/40" : "border-white/10"
-                          }`}
-                        />
-                        <button
-                          onClick={checkPromoCode}
-                          disabled={promoBusy || !promoInput.trim()}
-                          className="px-5 rounded-xl bg-white/5 hover:bg-white/10 text-sm font-medium disabled:opacity-40 shrink-0"
-                        >
-                          {promoBusy ? "..." : "Применить"}
-                        </button>
-                      </div>
-                      {promoErr && <p className="text-xs text-red-300 px-1">{promoErr}</p>}
-                    </>
-                  ) : (
-                    <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25">
-                      <IconCheck size={16} />
-                      <span className="text-sm">
-                        <b className="font-mono">{promo.code}</b>
-                        <span className="text-emerald-300 font-bold"> −{promo.discount}%</span>
-                        <span className="text-white/50">
-                          {" "}
-                          · экономия {tariff.rub - payRub}₽ / {tariff.uah - payUah}₴
-                        </span>
-                      </span>
-                      <button
-                        onClick={clearPromo}
-                        className="ml-auto text-xs text-white/40 hover:text-white/70 shrink-0"
-                      >
-                        убрать
-                      </button>
-                    </div>
-                  )}
                 </div>
 
                 <button
@@ -706,7 +579,6 @@ export default function Cabinet() {
                     {tariff.title} · {method.title}
                   </span>
                   <span className="font-bold">
-                    {promo && <span className="line-through text-white/30 font-normal mr-2">{payWas}</span>}
                     {payNow}
                   </span>
                 </div>
@@ -722,8 +594,7 @@ export default function Cabinet() {
                     onClick={createOrder}
                     className="flex-1 py-3 rounded-full btn-primary text-white font-bold"
                   >
-                    Оплатить {promo && <span className="line-through opacity-50 font-normal">{payWas}</span>}{" "}
-                    {payNow}
+                    Оплатить {payNow}
                   </button>
                 </div>
                 <p className="text-[11px] text-center text-white/35 leading-relaxed -mt-1">
@@ -758,13 +629,6 @@ export default function Cabinet() {
                       <Row label="ІПН" value={order.instructions.tax} onCopy={copy} />
                       <Row label="Призначення" value={order.instructions.purpose} onCopy={copy} />
                     </>
-                  )}
-                  {order.instructions?.promo && (
-                    <div className="flex items-center gap-2 text-[11px] text-emerald-300 bg-emerald-500/5 border border-emerald-500/20 rounded-lg px-2.5 py-1.5">
-                      <IconCheck size={12} />
-                      Промокод <b className="font-mono">{order.instructions.promo.code}</b> применён:
-                      −{order.instructions.promo.discount}%
-                    </div>
                   )}
                   {order.instructions?.amount && (
                     <Row label="Сумма" value={order.instructions.amount} onCopy={copy} />
@@ -1045,48 +909,6 @@ export default function Cabinet() {
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="rounded-[22px] glass p-6 space-y-3">
-            <h3 className="font-bold flex items-center gap-2">
-              <IconGift size={18} /> Фри-ключ — 1 в день
-            </h3>
-            <div className="text-sm text-white/60">
-              {free?.taken ? (
-                <span>
-                  Сегодня уже забрали: <b>{free.by}</b> • Следующий в 00:00 МСК
-                </span>
-              ) : (
-                <span className="text-emerald-400">Свободен — успей забрать!</span>
-              )}
-            </div>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={form.discordConfirmed}
-                onChange={(e) => setForm({ ...form, discordConfirmed: e.target.checked })}
-              />
-              <span className="inline-flex items-center gap-1">
-                Я подписался на{" "}
-                <a
-                  href="https://discord.gg/ASXzHaQfvj"
-                  target="_blank"
-                  className="text-[#8b95f7] underline inline-flex items-center gap-1"
-                >
-                  <IconDiscord size={13} /> Discord
-                </a>
-              </span>
-            </label>
-            <button
-              onClick={claimFree}
-              disabled={free?.taken}
-              className="w-full py-3 rounded-full btn-primary text-white font-bold disabled:opacity-40"
-            >
-              Забрать фри-ключ (на 1 день)
-            </button>
-            <p className="text-xs text-white/30">
-              Всего 1 ключ в день на весь сайт • проверка по IP и аккаунту
-            </p>
           </div>
         </div>
       </div>

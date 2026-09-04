@@ -15,19 +15,7 @@ import {
 } from "@/components/Icons";
 import Link from "next/link";
 
-type Tab = "keys" | "news" | "users" | "payments" | "promo" | "site";
-
-/** Статус промокода: активен / заканчивается / мёртв. */
-function promoState(p: { isActive: boolean; expiresAt: string | null; maxUses: number | null; uses: number }) {
-  if (!p.isActive) return { label: "Выключен", cls: "bg-white/10 text-white/50" };
-  if (p.expiresAt && new Date(p.expiresAt).getTime() < Date.now())
-    return { label: "Истёк", cls: "bg-white/5 text-white/60" };
-  if (p.maxUses !== null && p.uses >= p.maxUses)
-    return { label: "Исчерпан", cls: "bg-white/5 text-white/60" };
-  if (p.maxUses !== null && p.uses >= p.maxUses * 0.8)
-    return { label: "Заканчивается", cls: "bg-white/5 text-white/60" };
-  return { label: "Активен", cls: "bg-white/10 text-white/70" };
-}
+type Tab = "keys" | "news" | "users" | "payments" | "site";
 
 export default function AdminPage() {
   const [me, setMe] = useState<any>(null);
@@ -48,14 +36,6 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState<"mod" | "launcher" | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [newsForm, setNewsForm] = useState({ title: "", content: "", media: "" });
-  const [promos, setPromos] = useState<any[]>([]);
-  const [promoForm, setPromoForm] = useState({
-    code: "",
-    discount: "20",
-    durationDays: "1",
-    maxUses: "50",
-    comment: "",
-  });
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
@@ -66,20 +46,18 @@ export default function AdminPage() {
   }
 
   const reload = useCallback(async () => {
-    const [k, u, p, n, s, pr, rel] = await Promise.all([
+    const [k, u, p, n, s, rel] = await Promise.all([
       fetch("/api/keys").then((r) => r.json()).catch(() => ({})),
       fetch("/api/admin/users").then((r) => r.json()).catch(() => ({})),
       fetch("/api/payments?all=1").then((r) => r.json()).catch(() => ({})),
       fetch("/api/news").then((r) => r.json()).catch(() => ({})),
       fetch("/api/settings").then((r) => r.json()).catch(() => ({})),
-      fetch("/api/admin/promo").then((r) => r.json()).catch(() => ({})),
       fetch("/api/admin/releases").then((r) => r.json()).catch(() => ({})),
     ]);
     setKeys(k.keys || []);
     setUsers(u.users || []);
     setPayments(p.payments || []);
     setNews(n.news || []);
-    setPromos(pr.promos || []);
     setReleases(rel.releases || []);
     if (s.settings) setSite((prev) => ({ ...prev, ...s.settings }));
   }, []);
@@ -127,55 +105,6 @@ export default function AdminPage() {
     const d = await r.json();
     if (!r.ok) flash(d.error || "Ошибка", true);
     else { flash("Роль обновлена"); reload(); }
-  }
-
-  /** Создание промокода. */
-  async function createPromo(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      const r = await fetch("/api/admin/promo", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(promoForm),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok) return flash(d.error || `Ошибка ${r.status}`, true);
-      flash(`Промокод ${d.promo.code} создан — скидка ${d.promo.discount}%`);
-      setPromoForm({ code: "", discount: "20", durationDays: "1", maxUses: "50", comment: "" });
-      reload();
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function togglePromo(id: string) {
-    const r = await fetch("/api/admin/promo", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, action: "toggle" }),
-    });
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) return flash(d.error || "Ошибка", true);
-    flash(d.promo.isActive ? "Промокод включён" : "Промокод выключен");
-    reload();
-  }
-
-  async function deletePromo(id: string, code: string) {
-    if (!confirm(`Удалить промокод ${code}?`)) return;
-    const r = await fetch(`/api/admin/promo?id=${encodeURIComponent(id)}`, { method: "DELETE" });
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) return flash(d.error || "Ошибка", true);
-    flash(d.message || `Промокод ${code} удалён`);
-    reload();
-  }
-
-  /** Генерация случайного кода — чтобы не выдумывать вручную. */
-  function randomCode() {
-    const abc = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let s = "";
-    for (let i = 0; i < 8; i++) s += abc[Math.floor(Math.random() * abc.length)];
-    setPromoForm((f) => ({ ...f, code: s }));
   }
 
   /** Публикация новости — с нормальным разбором ответа вместо alert. */
@@ -328,7 +257,6 @@ export default function AdminPage() {
     { id: "news", title: "Новости", icon: <IconNews size={16} /> },
     { id: "users", title: "Пользователи", icon: <IconUser size={16} /> },
     { id: "payments", title: "Платежи", icon: <IconCard size={16} />, badge: pendingPays },
-    { id: "promo", title: "Промокоды", icon: <IconGift size={16} /> },
     { id: "site", title: "Сайт", icon: <IconServer size={16} /> },
   ];
 
@@ -630,225 +558,6 @@ export default function AdminPage() {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* ПРОМОКОДЫ */}
-      {tab === "promo" && (
-        <div className="space-y-4">
-          {/* создание */}
-          <form onSubmit={createPromo} className="rounded-[22px] glass p-5 space-y-3">
-            <h3 className="font-bold flex items-center gap-2">
-              <IconGift size={18} /> Новый промокод
-            </h3>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <label className="space-y-1">
-                <span className="text-xs text-white/50">Название промокода</span>
-                <div className="flex gap-1.5">
-                  <input
-                    value={promoForm.code}
-                    onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
-                    placeholder="SUMMER25"
-                    className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm font-mono uppercase"
-                  />
-                  <button
-                    type="button"
-                    onClick={randomCode}
-                    title="Сгенерировать случайный"
-                    className="px-3 rounded-xl bg-white/5 hover:bg-white/10 text-sm shrink-0"
-                  >
-                    🎲
-                  </button>
-                </div>
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-xs text-white/50">% скидки</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={100}
-                  value={promoForm.discount}
-                  onChange={(e) => setPromoForm({ ...promoForm, discount: e.target.value })}
-                  placeholder="20"
-                  className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm"
-                />
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-xs text-white/50">Длительность, дней</span>
-                <input
-                  type="number"
-                  min={0}
-                  value={promoForm.durationDays}
-                  onChange={(e) => setPromoForm({ ...promoForm, durationDays: e.target.value })}
-                  placeholder="1"
-                  className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm"
-                />
-                <span className="text-[10px] text-white/30">пусто или 0 — бессрочно</span>
-              </label>
-
-              <label className="space-y-1">
-                <span className="text-xs text-white/50">Макс. использований</span>
-                <input
-                  type="number"
-                  min={0}
-                  value={promoForm.maxUses}
-                  onChange={(e) => setPromoForm({ ...promoForm, maxUses: e.target.value })}
-                  placeholder="50"
-                  className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm"
-                />
-                <span className="text-[10px] text-white/30">пусто или 0 — без лимита</span>
-              </label>
-            </div>
-
-            <input
-              value={promoForm.comment}
-              onChange={(e) => setPromoForm({ ...promoForm, comment: e.target.value })}
-              placeholder="Комментарий для себя — например «для стримера Вани» (необязательно)"
-              className="w-full px-3 py-2 rounded-xl bg-[#111111] border border-white/10 text-sm"
-            />
-
-            {/* предпросмотр цен */}
-            {Number(promoForm.discount) > 0 && Number(promoForm.discount) <= 100 && (
-              <div className="flex flex-wrap gap-2 text-xs">
-                {[
-                  { t: "30 дней", rub: 100, uah: 50 },
-                  { t: "90 дней", rub: 250, uah: 125 },
-                  { t: "Навсегда", rub: 400, uah: 200 },
-                ].map((x) => {
-                  const d = Number(promoForm.discount);
-                  const nr = Math.max(1, Math.floor(x.rub * (1 - d / 100)));
-                  const nu = Math.max(1, Math.floor(x.uah * (1 - d / 100)));
-                  return (
-                    <span key={x.t} className="px-2.5 py-1.5 rounded-lg bg-white/5 border border-white/10">
-                      <span className="text-white/40">{x.t}: </span>
-                      <span className="line-through text-white/30">{x.rub}₽</span>{" "}
-                      <span className="text-white/70 font-bold">{nr}₽</span>
-                      <span className="text-white/20"> / </span>
-                      <span className="line-through text-white/30">{x.uah}₴</span>{" "}
-                      <span className="text-white/70 font-bold">{nu}₴</span>
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={busy}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-full btn-primary text-white font-bold disabled:opacity-50"
-            >
-              {busy ? "Создаю..." : "Создать промокод"}
-            </button>
-          </form>
-
-          {/* список */}
-          <div className="rounded-[22px] glass p-5 space-y-3">
-            <h3 className="font-bold">
-              Промокоды <span className="text-white/40 text-sm font-normal">({promos.length})</span>
-            </h3>
-
-            {promos.length === 0 && (
-              <p className="text-sm text-white/40 py-4 text-center">
-                Промокодов пока нет. Создай первый — он сразу появится у покупателей при оплате.
-              </p>
-            )}
-
-            <div className="grid gap-2">
-              {promos.map((p) => {
-                const st = promoState(p);
-                const limit = p.maxUses === null ? "∞" : p.maxUses;
-                const pct = p.maxUses ? Math.min(100, (p.uses / p.maxUses) * 100) : 0;
-                return (
-                  <div
-                    key={p.id}
-                    className="rounded-xl bg-white/[0.03] border border-white/5 p-3.5 space-y-2.5"
-                  >
-                    <div className="flex flex-wrap items-center gap-2.5">
-                      <span className="font-mono font-bold text-base tracking-wide">{p.code}</span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/10 text-white/70 text-xs font-bold">
-                        −{p.discount}%
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${st.cls}`}>
-                        {st.label}
-                      </span>
-
-                      <div className="ml-auto flex items-center gap-1.5">
-                        <button
-                          onClick={() => togglePromo(p.id)}
-                          className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs"
-                        >
-                          {p.isActive ? "Выключить" : "Включить"}
-                        </button>
-                        <button
-                          onClick={() => deletePromo(p.id, p.code)}
-                          className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/60 text-xs"
-                          title="Удалить"
-                        >
-                          <IconClose size={13} />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-white/50">
-                      <span>
-                        Использован:{" "}
-                        <b className="text-white/80">
-                          {p.uses} / {limit}
-                        </b>
-                      </span>
-                      <span>
-                        Действует:{" "}
-                        <b className="text-white/80">
-                          {p.expiresAt
-                            ? new Date(p.expiresAt).toLocaleString("ru-RU", {
-                                day: "2-digit",
-                                month: "2-digit",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })
-                            : "бессрочно"}
-                        </b>
-                      </span>
-                      <span>
-                        Создан:{" "}
-                        <b className="text-white/80">
-                          {new Date(p.createdAt).toLocaleDateString("ru-RU")}
-                        </b>
-                      </span>
-                    </div>
-
-                    {p.maxUses !== null && (
-                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${
-                            pct >= 100 ? "bg-white/40" : pct >= 80 ? "bg-white/60" : "bg-white/60"
-                          }`}
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    )}
-
-                    {p.comment && <p className="text-xs text-white/35 italic">{p.comment}</p>}
-
-                    {p.redemptions?.length > 0 && (
-                      <div className="text-xs text-white/40 pt-1 border-t border-white/5">
-                        Применили:{" "}
-                        <span className="text-white/60">
-                          {p.redemptions.map((r: any) => r.user?.username).filter(Boolean).join(", ")}
-                        </span>
-                        {p._count?.redemptions > p.redemptions.length &&
-                          ` и ещё ${p._count.redemptions - p.redemptions.length}`}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
           </div>
         </div>
       )}
